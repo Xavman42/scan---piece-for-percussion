@@ -4,6 +4,7 @@ from typing import Optional
 
 from neoscore.core import neoscore
 from neoscore.core.brush import Brush
+from neoscore.core.key_event import KeyEventType
 from neoscore.core.path import Path
 from neoscore.core.pen import Pen
 from neoscore.core.point import Point, PointDef
@@ -14,6 +15,7 @@ class CircleReticle:
     def __init__(self, center, pen, ul, ur, bl, br, id_num=0):
         self.id_num = id_num
         self.center = center
+        self.init_time = time.time()
         self.pen = pen
         self.ul = ul
         self.ur = ur
@@ -21,11 +23,6 @@ class CircleReticle:
         self.br = br
         self.box_width = (ur[0] - ul[0]).base_value
         self.box_height = (ul[1] - bl[1]).base_value
-        # self.object = Path.ellipse_from_center(self.center, None,
-        #                                        width=Unit((math.sin(0) + 1) * 200),
-        #                                        height=Unit((math.sin(0) + 1) * 200),
-        #                                        brush=Brush.no_brush(),
-        #                                        pen=self.pen)
         self.object_1 = Path.arc(self.center, None, Unit(1), Unit(1), 0, math.pi / 2, Brush.no_brush(), self.pen)
         self.object_2 = Path.arc(self.center, None, Unit(1), Unit(1), math.pi / 2, math.pi, Brush.no_brush(), self.pen)
         self.object_3 = Path.arc(self.center, None, Unit(1), Unit(1), math.pi, 3 * math.pi / 2,
@@ -38,7 +35,7 @@ class CircleReticle:
         self.object_8 = None
 
     def animate(self, real_time):
-        radius = real_time * 200 + 1
+        radius = (time.time() - self.init_time) * 200 + 1
         arc_center = (self.center[0] - Unit(radius/2), self.center[1] - Unit(radius/2))
         try:
             self.object_1.remove()
@@ -111,7 +108,7 @@ class CircleReticle:
                                      Unit(radius), Unit(radius), (math.pi / 2) - math.acos(self.box_width/radius),
                                      (math.pi / 2) + math.acos(self.box_width/radius), Brush.no_brush(),
                                      self.pen)
-        elif radius > (self.box_width * math.sqrt(2)):
+        elif (self.box_width * 3) > radius > (self.box_width * math.sqrt(2)):
             self.object_5 = Path.arc((arc_center[0] + 2 * self.center[0], arc_center[1]), None,
                                      Unit(radius), Unit(radius), math.pi - math.acos(self.box_width / radius),
                                      math.pi + math.acos(self.box_width / radius), Brush.no_brush(), self.pen)
@@ -128,13 +125,20 @@ class CircleReticle:
                                      (math.pi / 2) + math.acos(self.box_width / radius), Brush.no_brush(),
                                      self.pen)
         else:
-            pass
+            del self
 
 
 def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
-    global reticle
+    global reticles
     real_time = current_time - start_time
-    reticle.animate(real_time)
+    for i in reticles:
+        i.animate(real_time)
+
+
+def key_handler(event):
+    if event.event_type == KeyEventType.PRESS:
+        reticles.append(CircleReticle(Center, pen, UL_point, UR_point, BL_point, BR_point))
+        print("new!")
 
 
 # Press the green button in the gutter to run the script.
@@ -156,7 +160,9 @@ if __name__ == '__main__':
     Path.straight_line(Zero, UR, Zero, BR, pen=pen)
     Path.straight_line(Zero, BR, Zero, BL, pen=pen)
     Path.straight_line(Zero, BL, Zero, UL, pen=pen)
-    reticle = CircleReticle(Center, pen, UL_point, UR_point, BL_point, BR_point)
+    reticles = []
+    reticles.append(CircleReticle(Center, pen, UL_point, UR_point, BL_point, BR_point))
     start_time = time.time()
 
+    neoscore.set_key_event_handler(key_handler)
     neoscore.show(refresh_func)
