@@ -109,10 +109,10 @@ def redraw_top_layer():
     for i in top_layer:
         i.remove()
     top_layer = []
-    top_layer.append(Path.rect(UL_point, None, Unit(2000), -Unit(2000), Brush("#ffffff"), Pen.no_pen()))
-    top_layer.append(Path.rect(UR_point, None, Unit(2000), Unit(2000), Brush("#ffffff"), Pen.no_pen()))
-    top_layer.append(Path.rect(BR_point, None, -Unit(2000), Unit(2000), Brush("#ffffff"), Pen.no_pen()))
-    top_layer.append(Path.rect(BL_point, None, -Unit(2000), -Unit(2000), Brush("#ffffff"), Pen.no_pen()))
+    top_layer.append(Path.rect(ULP, None, Unit(2000), -Unit(2000), Brush("#ffffff"), Pen.no_pen()))
+    top_layer.append(Path.rect(URP, None, Unit(2000), Unit(2000), Brush("#ffffff"), Pen.no_pen()))
+    top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#ffffff"), Pen.no_pen()))
+    top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#ffffff"), Pen.no_pen()))
 
 
 def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
@@ -131,8 +131,26 @@ def key_handler(event):
 def mouse_handler(event):
     if event.event_type == MouseEventType.PRESS:
         x, y = event.document_pos
-        if UL_point[0] < x < UR_point[0] and UL_point[1] < y < BL_point[1]:
-            reticles.append(CircleReticle((x, y), UL_point, UR_point, BL_point, BR_point))
+        if ULP[0] < x < URP[0] and ULP[1] < y < BLP[1]:
+            reticles.append(CircleReticle((x, y), ULP, URP, BLP, BRP))
+
+
+def initialize():
+    upper_left_point = (Unit(0), Unit(0))
+    upper_right_point = (Unit(500), Unit(0))
+    bottom_left_point = (Unit(0), Unit(500))
+    bottom_right_point = (Unit(500), Unit(500))
+    upper_left = Path.ellipse(upper_left_point, None, Unit(0), Unit(0), pen=pen)
+    upper_right = Path.ellipse(upper_right_point, None, Unit(0), Unit(0), pen=pen)
+    bottom_left = Path.ellipse(bottom_left_point, None, Unit(0), Unit(0), pen=pen)
+    bottom_right = Path.ellipse(bottom_right_point, None, Unit(0), Unit(0), pen=pen)
+    zero = (Unit(0), Unit(0))
+    Path.straight_line(zero, upper_left, zero, upper_right, pen=pen)
+    Path.straight_line(zero, upper_right, zero, bottom_right, pen=pen)
+    Path.straight_line(zero, bottom_right, zero, bottom_left, pen=pen)
+    Path.straight_line(zero, bottom_left, zero, upper_left, pen=pen)
+    return upper_left_point, upper_right_point, bottom_left_point, bottom_right_point, \
+        upper_left, upper_right, bottom_left, bottom_right, zero
 
 
 # Press the green button in the gutter to run the script.
@@ -140,23 +158,9 @@ if __name__ == '__main__':
     neoscore.setup()
 
     pen = Pen("000000", thickness=Unit(2))
-    UL_point = (Unit(0), Unit(0))
-    UR_point = (Unit(500), Unit(0))
-    BL_point = (Unit(0), Unit(500))
-    BR_point = (Unit(500), Unit(500))
-    UL = Path.ellipse(UL_point, None, Unit(0), Unit(0), pen=pen)
-    UR = Path.ellipse(UR_point, None, Unit(0), Unit(0), pen=pen)
-    BL = Path.ellipse(BL_point, None, Unit(0), Unit(0), pen=pen)
-    BR = Path.ellipse(BR_point, None, Unit(0), Unit(0), pen=pen)
-    Zero = (Unit(0), Unit(0))
-    Center = (Unit(250), Unit(250))
-    Path.straight_line(Zero, UL, Zero, UR, pen=pen)
-    Path.straight_line(Zero, UR, Zero, BR, pen=pen)
-    Path.straight_line(Zero, BR, Zero, BL, pen=pen)
-    Path.straight_line(Zero, BL, Zero, UL, pen=pen)
+    ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
     reticles = []
-    # reticles.append(CircleReticle(Center, UL_point, UR_point, BL_point, BR_point))
     start_time = time.time()
 
     neoscore.set_key_event_handler(key_handler)
