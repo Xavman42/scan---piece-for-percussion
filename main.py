@@ -6,14 +6,17 @@ from neoscore.core import neoscore
 from neoscore.core.brush import Brush
 from neoscore.core.key_event import KeyEventType
 from neoscore.core.mouse_event import MouseEventType
+from neoscore.core.music_font import MusicFont
+from neoscore.core.music_text import MusicText
 from neoscore.core.path import Path
 from neoscore.core.pen import Pen
 from neoscore.core.point import Point, PointDef
 from neoscore.core.units import Unit
+from neoscore.western.notehead import Notehead
 
 
 class CircleReticle:
-    def __init__(self, origin, ul, ur, bl, br, order=3):
+    def __init__(self, origin, ul, ur, bl, br, order=1):
         self.origin = origin
         self.init_time = time.time()
         self.ul = ul
@@ -30,6 +33,9 @@ class CircleReticle:
         self.right_dist = ur[0] - origin[0]
         self.left_dist = origin[0] - ul[0]
         self.drum_positions = []
+        self.prev_rad = 0
+        self.tick = 1
+        self.distances = []
 
     def animate(self):
         radius = (time.time() - self.init_time) * 200 + 1
@@ -103,6 +109,23 @@ class CircleReticle:
                 self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist,
                                                               self.origin[1] - 2 * Unit(self.box_height)), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
+            if self.tick == 1:
+                self.distances = self._calculate_reticle_to_drums()
+                self.tick = 2
+            self._check_for_contact(radius, self.distances)
+        self.prev_rad = radius
+
+    def _calculate_reticle_to_drums(self):
+        distances = []
+        for i in self.objects:
+            for j in self.drum_positions:
+                distances.append(math.sqrt((i.x.base_value - j[0])**2 + (i.y.base_value - j[1])**2))
+        return distances
+
+    def _check_for_contact(self, radius, distances):
+        for i in distances:
+            if self.prev_rad/2 < i < radius/2:
+                MusicText((Unit(25*(time.time() - self.init_time)), Unit(100)), None, "noteheadBlack", MusicFont("Bravura", Unit(6)))
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -200,6 +223,9 @@ if __name__ == '__main__':
     reticles = []
     drums = []
     drums.append(Drum((Unit(100), Unit(100))))
+    drums.append(Drum((Unit(200), Unit(200))))
+    MusicText((Unit(-20), Unit(100)), None, "noteheadBlack",
+              MusicFont("Bravura", Unit(6)))
 
     neoscore.set_key_event_handler(key_handler)
     neoscore.set_mouse_event_handler(mouse_handler)
