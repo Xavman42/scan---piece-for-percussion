@@ -13,7 +13,7 @@ from neoscore.core.units import Unit
 
 
 class CircleReticle:
-    def __init__(self, origin, ul, ur, bl, br, order=1):
+    def __init__(self, origin, ul, ur, bl, br, order=3):
         self.origin = origin
         self.init_time = time.time()
         self.ul = ul
@@ -29,6 +29,7 @@ class CircleReticle:
         self.bottom_dist = bl[1] - origin[1]
         self.right_dist = ur[0] - origin[0]
         self.left_dist = origin[0] - ul[0]
+        self.drum_positions = []
 
     def animate(self):
         radius = (time.time() - self.init_time) * 200 + 1
@@ -103,29 +104,64 @@ class CircleReticle:
                                                               self.origin[1] - 2 * Unit(self.box_height)), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
 
+    def set_drum_locations(self, drums_array):
+        self.drum_positions = []
+        for i in drums_array:
+            self.drum_positions.append((i.x.base_value, i.y.base_value))
+
+
+class Drum:
+    def __init__(self, location):
+        self.loc = location
+        self.init_time = time.time()
+        self.x = location[0]
+        self.y = location[1]
+        self.pen = Pen("000000", thickness=Unit(2))
+        self.objects = []
+        self.rad = 25
+        Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen)
+
+    def animate(self):
+        radius = (time.time() - self.init_time) * 30
+        for i in self.objects:
+            i.remove()
+        self.objects = []
+        if radius < self.rad:
+            self.objects.append(Path.ellipse_from_center(self.loc, None, Unit(radius), Unit(radius),
+                                                         brush=Brush("#11111166"), pen=self.pen))
+        elif self.rad < radius < (self.rad * (6/5)):
+            shrink_rad = self.rad + (24/5) * (self.rad - radius)
+            self.objects.append(Path.ellipse_from_center(self.loc, None, Unit(shrink_rad), Unit(shrink_rad),
+                                                         brush=Brush("#e8fc03ff"), pen=self.pen))
+
+    def reset_animation(self):
+        self.init_time = time.time()
+
 
 def redraw_top_layer():
     global top_layer
     for i in top_layer:
         i.remove()
     top_layer = []
-    top_layer.append(Path.rect(ULP, None, Unit(2000), -Unit(2000), Brush("#ffffff"), Pen.no_pen()))
-    top_layer.append(Path.rect(URP, None, Unit(2000), Unit(2000), Brush("#ffffff"), Pen.no_pen()))
-    top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#ffffff"), Pen.no_pen()))
-    top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#ffffff"), Pen.no_pen()))
+    top_layer.append(Path.rect(ULP, None, Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    top_layer.append(Path.rect(URP, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
 
 
 def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
     global reticles
     for i in reticles:
         i.animate()
+    for i in drums:
+        i.animate()
     redraw_top_layer()
 
 
 def key_handler(event):
     if event.event_type == KeyEventType.PRESS:
-        # reticles.append(CircleReticle(Center, UL_point, UR_point, BL_point, BR_point))
-        print("hi!")
+        for i in drums:
+            i.reset_animation()
 
 
 def mouse_handler(event):
@@ -133,6 +169,7 @@ def mouse_handler(event):
         x, y = event.document_pos
         if ULP[0] < x < URP[0] and ULP[1] < y < BLP[1]:
             reticles.append(CircleReticle((x, y), ULP, URP, BLP, BRP))
+            reticles[-1].set_drum_locations(drums)
 
 
 def initialize():
@@ -161,7 +198,8 @@ if __name__ == '__main__':
     ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
     reticles = []
-    start_time = time.time()
+    drums = []
+    drums.append(Drum((Unit(100), Unit(100))))
 
     neoscore.set_key_event_handler(key_handler)
     neoscore.set_mouse_event_handler(mouse_handler)
