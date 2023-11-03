@@ -16,7 +16,7 @@ from neoscore.western.notehead import Notehead
 
 
 class CircleReticle:
-    def __init__(self, origin, ul, ur, bl, br, order=1):
+    def __init__(self, origin, ul, ur, bl, br, order=3):
         self.origin = origin
         self.init_time = time.time()
         self.ul = ul
@@ -45,10 +45,12 @@ class CircleReticle:
         if radius < 3000:
             # 0th order circle
             if self.order >= 0:
+                self.pen = Pen("000000", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center(self.origin, None, Unit(radius), Unit(radius),
                                                              Brush.no_brush(), self.pen))
             # 1st order reflections
             if self.order >= 1:
+                self.pen = Pen("444444", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist, self.origin[1]), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist, self.origin[1]), None,
@@ -59,6 +61,7 @@ class CircleReticle:
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
             # 2nd order reflections
             if self.order >= 2:
+                self.pen = Pen("888888", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
                                                               self.origin[1] - 2 * self.top_dist), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
@@ -73,6 +76,7 @@ class CircleReticle:
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
             # 3rd order reflections
             if self.order >= 3:
+                self.pen = Pen("cccccc", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
                                                               self.origin[1]), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
