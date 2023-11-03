@@ -16,7 +16,7 @@ from neoscore.western.notehead import Notehead
 
 
 class CircleReticle:
-    def __init__(self, origin, ul, ur, bl, br, order=3):
+    def __init__(self, origin, ul, ur, bl, br, order=2):
         self.origin = origin
         self.init_time = time.time()
         self.ul = ul
@@ -51,14 +51,17 @@ class CircleReticle:
             # 1st order reflections
             if self.order >= 1:
                 self.pen = Pen("444444", thickness=Unit(2))
-                self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist, self.origin[1]), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
-                self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist, self.origin[1]), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
+                self.objects.append(
+                    Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist, self.origin[1]), None,
+                                             Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
+                self.objects.append(
+                    Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist, self.origin[1]), None,
+                                             Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
                 self.objects.append(Path.ellipse_from_center((self.origin[0], self.origin[1] - 2 * self.top_dist), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
-                self.objects.append(Path.ellipse_from_center((self.origin[0], self.origin[1] + 2 * self.bottom_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
+                self.objects.append(
+                    Path.ellipse_from_center((self.origin[0], self.origin[1] + 2 * self.bottom_dist), None,
+                                             Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
             # 2nd order reflections
             if self.order >= 2:
                 self.pen = Pen("888888", thickness=Unit(2))
@@ -123,13 +126,53 @@ class CircleReticle:
         distances = []
         for i in self.objects:
             for j in self.drum_positions:
-                distances.append(math.sqrt((i.x.base_value - j[0])**2 + (i.y.base_value - j[1])**2))
+                distances.append(math.sqrt((i.x.base_value - j[0]) ** 2 + (i.y.base_value - j[1]) ** 2))
         return distances
 
     def _check_for_contact(self, radius, distances):
         for i in distances:
-            if self.prev_rad/2 < i < radius/2:
-                MusicText((Unit(25*(time.time() - self.init_time)), Unit(100)), None, "noteheadBlack", MusicFont("Bravura", Unit(6)))
+            if self.prev_rad / 2 < i < radius / 2:
+                MusicText((Unit(25 * (time.time() - self.init_time)), Unit(100)), None, "noteheadBlack",
+                          MusicFont("Bravura", Unit(6)))
+
+    def set_drum_locations(self, drums_array):
+        self.drum_positions = []
+        for i in drums_array:
+            self.drum_positions.append((i.x.base_value, i.y.base_value))
+
+
+class LineReticle:
+    def __init__(self, ul, ur, bl, br):
+        self.init_time = time.time()
+        self.ul = ul
+        self.ur = ur
+        self.bl = bl
+        self.br = br
+        self.box_width = (ur[0] - ul[0]).base_value
+        self.box_height = (ul[1] - bl[1]).base_value
+        self.objects = []
+        self.pen = Pen("000000", thickness=Unit(4))
+        self.drum_positions = []
+        self.tick = 1
+        self.distances = []
+        self.prev_pos = 0
+
+    def animate(self):
+        pos = (time.time() - self.init_time) * 200
+        for i in self.objects:
+            i.remove()
+        self.objects = []
+        if pos < self.box_width:
+            self.objects.append(Path.straight_line((Unit(pos), -Unit(self.box_height)), None, (Unit(0), Unit(self.box_height)), None,
+                                                   Brush.no_brush(), self.pen))
+            self._check_for_contact(pos)
+        self.prev_pos = pos
+
+    def _check_for_contact(self, pos):
+        for i in self.drum_positions:
+            if self.prev_pos < i[0] < pos:
+                MusicText((Unit(25 * (time.time() - self.init_time)), Unit(100)), None, "noteheadBlack",
+                          MusicFont("Bravura", Unit(6)))
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -156,8 +199,8 @@ class Drum:
         if radius < self.rad:
             self.objects.append(Path.ellipse_from_center(self.loc, None, Unit(radius), Unit(radius),
                                                          brush=Brush("#11111166"), pen=self.pen))
-        elif self.rad < radius < (self.rad * (6/5)):
-            shrink_rad = self.rad + (24/5) * (self.rad - radius)
+        elif self.rad < radius < (self.rad * (6 / 5)):
+            shrink_rad = self.rad + (24 / 5) * (self.rad - radius)
             self.objects.append(Path.ellipse_from_center(self.loc, None, Unit(shrink_rad), Unit(shrink_rad),
                                                          brush=Brush("#e8fc03ff"), pen=self.pen))
 
@@ -187,6 +230,10 @@ def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
 
 def key_handler(event):
     if event.event_type == KeyEventType.PRESS:
+        if event.code == 16777236:
+            reticles.append(LineReticle(ULP, URP, BLP, BRP))
+            reticles[-1].set_drum_locations(drums)
+            print(reticles)
         for i in drums:
             i.reset_animation()
 
@@ -233,4 +280,4 @@ if __name__ == '__main__':
 
     neoscore.set_key_event_handler(key_handler)
     neoscore.set_mouse_event_handler(mouse_handler)
-    neoscore.show(refresh_func, display_page_geometry=False)
+    neoscore.show(refresh_func, display_page_geometry=False, auto_viewport_interaction_enabled=False)
