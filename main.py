@@ -132,7 +132,7 @@ class CircleReticle:
     def _check_for_contact(self, radius, distances):
         for i in distances:
             if self.prev_rad / 2 < i < radius / 2:
-                MusicText((Unit(25 * (time.time() - self.init_time)), Unit(100)), None, "noteheadBlack",
+                MusicText((Unit(40 * (time.time() - self.init_time)), Unit(100)), None, "noteheadBlack",
                           MusicFont("Bravura", Unit(6)))
 
     def set_drum_locations(self, drums_array):
@@ -142,37 +142,66 @@ class CircleReticle:
 
 
 class LineReticle:
-    def __init__(self, ul, ur, bl, br):
+    def __init__(self, ul, ur, bl, br, direction):
         self.init_time = time.time()
         self.ul = ul
         self.ur = ur
         self.bl = bl
         self.br = br
         self.box_width = (ur[0] - ul[0]).base_value
-        self.box_height = (ul[1] - bl[1]).base_value
+        self.box_height = abs((ul[1] - bl[1]).base_value)
         self.objects = []
         self.pen = Pen("000000", thickness=Unit(4))
         self.drum_positions = []
         self.tick = 1
         self.distances = []
-        self.prev_pos = 0
+        self.direction = direction
+        match self.direction:
+            case "right":
+                self.prev_pos = 0
+            case "left":
+                self.prev_pos = self.box_width
+            case "down":
+                self.prev_pos = 0
+            case "up":
+                self.prev_pos = self.box_height
 
     def animate(self):
-        pos = (time.time() - self.init_time) * 200
+        match self.direction:
+            case "right":
+                pos = (time.time() - self.init_time) * 200
+            case "left":
+                pos = self.box_width - (time.time() - self.init_time) * 200
+            case "down":
+                pos = (time.time() - self.init_time) * 200
+            case "up":
+                pos = self.box_height - (time.time() - self.init_time) * 200
         for i in self.objects:
             i.remove()
         self.objects = []
-        if pos < self.box_width:
-            self.objects.append(Path.straight_line((Unit(pos), -Unit(self.box_height)), None, (Unit(0), Unit(self.box_height)), None,
-                                                   Brush.no_brush(), self.pen))
+        if 0 < pos < self.box_width:
+            if self.direction == "right" or self.direction == "left":
+                self.objects.append(Path.straight_line((Unit(pos), Unit(0)), None,
+                                                       (Unit(0), Unit(self.box_height)), None,
+                                                       Brush.no_brush(), self.pen))
+            if self.direction == "up" or self.direction == "down":
+                self.objects.append(Path.straight_line((Unit(0), Unit(pos)), None,
+                                                       (Unit(self.box_width), Unit(0)), None,
+                                                       Brush.no_brush(), self.pen))
             self._check_for_contact(pos)
         self.prev_pos = pos
 
     def _check_for_contact(self, pos):
         for i in self.drum_positions:
-            if self.prev_pos < i[0] < pos:
-                MusicText((Unit(25 * (time.time() - self.init_time)), Unit(100)), None, "noteheadBlack",
-                          MusicFont("Bravura", Unit(6)))
+            match self.direction:
+                case "right" | "down":
+                    if self.prev_pos < i[0] < pos:
+                        MusicText((Unit(40 * (time.time() - self.init_time)), Unit(100)), None, "noteheadBlack",
+                                  MusicFont("Bravura", Unit(6)))
+                case "left" | "up":
+                    if self.prev_pos > i[0] > pos:
+                        MusicText((Unit(40 * (time.time() - self.init_time)), Unit(100)), None, "noteheadBlack",
+                                  MusicFont("Bravura", Unit(6)))
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -231,9 +260,17 @@ def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
 def key_handler(event):
     if event.event_type == KeyEventType.PRESS:
         if event.code == 16777236:
-            reticles.append(LineReticle(ULP, URP, BLP, BRP))
+            reticles.append(LineReticle(ULP, URP, BLP, BRP, "right"))
             reticles[-1].set_drum_locations(drums)
-            print(reticles)
+        if event.code == 16777234:
+            reticles.append(LineReticle(ULP, URP, BLP, BRP, "left"))
+            reticles[-1].set_drum_locations(drums)
+        if event.code == 16777235:
+            reticles.append(LineReticle(ULP, URP, BLP, BRP, "up"))
+            reticles[-1].set_drum_locations(drums)
+        if event.code == 16777237:
+            reticles.append(LineReticle(ULP, URP, BLP, BRP, "down"))
+            reticles[-1].set_drum_locations(drums)
         for i in drums:
             i.reset_animation()
 
