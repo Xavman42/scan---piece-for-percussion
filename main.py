@@ -17,8 +17,9 @@ from neoscore.western.notehead import Notehead
 
 
 class CircleReticle:
-    def __init__(self, origin, ul, ur, bl, br, order=1):
+    def __init__(self, origin, ul, ur, bl, br, id, order=1):
         self.origin = origin
+        self.id = id
         self.init_time = time.time()
         self.ul = ul
         self.ur = ur
@@ -43,7 +44,7 @@ class CircleReticle:
         for i in self.objects:
             i.remove()
         self.objects = []
-        if radius < 4000:
+        if radius <= 4000:
             # 0th order circle
             if self.order >= 0:
                 self.pen = Pen("000000", thickness=Unit(2))
@@ -121,6 +122,8 @@ class CircleReticle:
                 self.distances = self._calculate_reticle_to_drums()
                 self.tick = 2
             self._check_for_contact(radius, self.distances)
+        else:
+            return self.id
         self.prev_rad = radius
 
     def _calculate_reticle_to_drums(self):
@@ -143,7 +146,8 @@ class CircleReticle:
 
 
 class LineReticle:
-    def __init__(self, ul, ur, bl, br, direction):
+    def __init__(self, ul, ur, bl, br, direction, id = 0):
+        self.id = id
         self.init_time = time.time()
         self.ul = ul
         self.ur = ur
@@ -180,27 +184,35 @@ class LineReticle:
         for i in self.objects:
             i.remove()
         self.objects = []
-        if 0 < pos < self.box_width:
+        if 0 <= pos <= self.box_width:
             if self.direction == "right" or self.direction == "left":
-                self.objects.append(Path.straight_line((Unit(pos), Unit(self.ul[1])), None,
+                self.objects.append(Path.straight_line((Unit(pos), self.ul[1]), None,
                                                        (Unit(0), Unit(self.box_height)), None,
                                                        Brush.no_brush(), self.pen))
             if self.direction == "up" or self.direction == "down":
-                self.objects.append(Path.straight_line((Unit(0), Unit(pos)), None,
+                self.objects.append(Path.straight_line((Unit(0), Unit(pos) + self.ul[1]), None,
                                                        (Unit(self.box_width), Unit(0)), None,
                                                        Brush.no_brush(), self.pen))
             self._check_for_contact(pos)
+        else:
+            return self.id
         self.prev_pos = pos
 
     def _check_for_contact(self, pos):
         global scrollers
         for i in self.drum_positions:
             match self.direction:
-                case "right" | "down":
+                case "right":
                     if self.prev_pos < i[0] < pos:
                         scrollers.append(Scroller(i[2]))
-                case "left" | "up":
+                case "down":
+                    if self.prev_pos < i[1] < pos:
+                        scrollers.append(Scroller(i[2]))
+                case "left":
                     if self.prev_pos > i[0] > pos:
+                        scrollers.append(Scroller(i[2]))
+                case "up":
+                    if self.prev_pos > i[1] > pos:
                         scrollers.append(Scroller(i[2]))
 
     def set_drum_locations(self, drums_array):
@@ -261,6 +273,18 @@ class Scroller:
                                               None, "noteheadBlack", MusicFont("Bravura", Unit(6))))
 
 
+def get_id():
+    global count
+    count = count + 1
+    return count
+
+
+def cleanup(trash):
+    global reticles
+    for i in trash:
+        if type(i) == int:
+            del reticles[i]
+
 def redraw_top_layer():
     global top_layer
     for i in top_layer:
@@ -277,8 +301,10 @@ def redraw_top_layer():
 
 def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
     global reticles
+    trash = []
     for i in reticles:
-        i.animate()
+        trash.append(reticles[i].animate())
+    cleanup(trash)
     for i in drums:
         i.animate()
     redraw_top_layer()
@@ -289,17 +315,21 @@ def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
 def key_handler(event):
     if event.event_type == KeyEventType.PRESS:
         if event.code == 16777236:
-            reticles.append(LineReticle(ULP, URP, BLP, BRP, "right"))
-            reticles[-1].set_drum_locations(drums)
+            id = get_id()
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "right", id)
+            reticles[id].set_drum_locations(drums)
         if event.code == 16777234:
-            reticles.append(LineReticle(ULP, URP, BLP, BRP, "left"))
-            reticles[-1].set_drum_locations(drums)
+            id = get_id()
+            reticles[id] = (LineReticle(ULP, URP, BLP, BRP, "left", id))
+            reticles[id].set_drum_locations(drums)
         if event.code == 16777235:
-            reticles.append(LineReticle(ULP, URP, BLP, BRP, "up"))
-            reticles[-1].set_drum_locations(drums)
+            id = get_id()
+            reticles[id] = (LineReticle(ULP, URP, BLP, BRP, "up", id))
+            reticles[id].set_drum_locations(drums)
         if event.code == 16777237:
-            reticles.append(LineReticle(ULP, URP, BLP, BRP, "down"))
-            reticles[-1].set_drum_locations(drums)
+            id = get_id()
+            reticles[id] = (LineReticle(ULP, URP, BLP, BRP, "down", id))
+            reticles[id].set_drum_locations(drums)
         if event.code == 48:
             scrollers.append(Scroller(0))
         if event.code == 49:
@@ -328,8 +358,9 @@ def mouse_handler(event):
     if event.event_type == MouseEventType.PRESS:
         x, y = event.document_pos
         if ULP[0] < x < URP[0] and ULP[1] < y < BLP[1]:
-            reticles.append(CircleReticle((x, y), ULP, URP, BLP, BRP))
-            reticles[-1].set_drum_locations(drums)
+            id = get_id()
+            reticles[id] = CircleReticle((x, y), ULP, URP, BLP, BRP, id)
+            reticles[id].set_drum_locations(drums)
 
 
 def initialize():
@@ -354,10 +385,11 @@ def initialize():
 if __name__ == '__main__':
     neoscore.setup()
 
+    count = 0
     pen = Pen("000000", thickness=Unit(2))
     ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
-    reticles = []
+    reticles = {}
     drums = []
     scrollers = []
     drums.append(Drum((Unit(300), Unit(400)), 0))
