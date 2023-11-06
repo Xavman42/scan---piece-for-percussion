@@ -10,10 +10,8 @@ from neoscore.core.music_font import MusicFont
 from neoscore.core.music_text import MusicText
 from neoscore.core.path import Path
 from neoscore.core.pen import Pen
-from neoscore.core.point import Point, PointDef
 from neoscore.core.text import Text
 from neoscore.core.units import Unit
-from neoscore.western.notehead import Notehead
 
 
 class CircleReticle:
@@ -44,7 +42,7 @@ class CircleReticle:
         for i in self.objects:
             i.remove()
         self.objects = []
-        if radius <= 4000:
+        if radius <= 5000:
             # 0th order circle
             if self.order >= 0:
                 self.pen = Pen("000000", thickness=Unit(2))
@@ -263,14 +261,14 @@ class Scroller:
         self.objects = []
         pos = (time.time() - self.init_time) * 200
         if self.drum_num > 4:
-            offset = 540
+            offset = 480
             if pos < 500:
                 self.objects.append(MusicText((Unit((1920 / 4) - pos + offset), Unit(10 * (self.drum_num - 4))),
-                                              None, "noteheadBlack", MusicFont("Bravura", Unit(6))))
+                                              None, "noteheadBlack", MusicFont("Bravura", Unit(8))))
         else:
             if pos < 500:
                 self.objects.append(MusicText((Unit((1920 / 4) - pos), Unit(10 * (self.drum_num + 1))),
-                                              None, "noteheadBlack", MusicFont("Bravura", Unit(6))))
+                                              None, "noteheadBlack", MusicFont("Bravura", Unit(8))))
 
 
 def get_id():
@@ -285,6 +283,7 @@ def cleanup(trash):
         if type(i) == int:
             del reticles[i]
 
+
 def redraw_top_layer():
     global top_layer
     for i in top_layer:
@@ -295,8 +294,8 @@ def redraw_top_layer():
     top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(60)), pen=pen))
-    top_layer.append(Path.straight_line((Unit(590), Unit(0)), None, (Unit(0), Unit(60)), pen=pen))
-    top_layer.append(Path.rect((Unit(480), Unit(0)), None, Unit(50), Unit(60)))
+    top_layer.append(Path.straight_line((Unit(555), Unit(0)), None, (Unit(0), Unit(60)), pen=pen))
+    top_layer.append(Path.rect((Unit(455), Unit(0)), None, Unit(50), Unit(60)))
 
 
 def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
@@ -308,6 +307,7 @@ def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
     for i in drums:
         i.animate()
     redraw_top_layer()
+    trash = []
     for i in scrollers:
         i.animate()
 
@@ -350,8 +350,8 @@ def key_handler(event):
             scrollers.append(Scroller(8))
         if event.code == 57:
             scrollers.append(Scroller(9))
-        for i in drums:
-            i.reset_animation()
+        # for i in drums:
+        #     i.reset_animation()
 
 
 def mouse_handler(event):
@@ -381,7 +381,6 @@ def initialize():
         upper_left, upper_right, bottom_left, bottom_right, zero
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     neoscore.setup()
 
@@ -407,4 +406,6 @@ if __name__ == '__main__':
 
     neoscore.set_key_event_handler(key_handler)
     neoscore.set_mouse_event_handler(mouse_handler)
-    neoscore.show(refresh_func, display_page_geometry=False, auto_viewport_interaction_enabled=False)
+    neoscore.set_viewport_center_pos((Unit(480), Unit(270)))
+    neoscore.show(refresh_func, display_page_geometry=False, auto_viewport_interaction_enabled=False,
+                  min_window_size=((960, 540)), max_window_size=((960, 540)))
