@@ -1,3 +1,14 @@
+# TO DO
+# Partial straight-line reticles
+# Radar reticles (variable length)
+# Synchronize scrollers to drum hits
+# Instantiate drums w/ keyboard
+# Cleanup scrollers (make into dict. with ID nums)
+# Change color scheme for projection onto instruments
+# Make multiple scroller shapes (regular, X, buzz (z), tremolo (//))
+# Animate drum-hits
+# Variable velocity reticles
+
 import math
 import time
 from typing import Optional
@@ -15,7 +26,7 @@ from neoscore.core.units import Unit
 
 
 class CircleReticle:
-    def __init__(self, origin, ul, ur, bl, br, id, order=1):
+    def __init__(self, origin, ul, ur, bl, br, id, order=1, pen=None):
         self.origin = origin
         self.id = id
         self.init_time = time.time()
@@ -26,7 +37,7 @@ class CircleReticle:
         self.box_width = (ur[0] - ul[0]).base_value
         self.box_height = (ul[1] - bl[1]).base_value
         self.objects = []
-        self.pen = Pen("000000", thickness=Unit(2))
+        self.pen = pen
         self.order = order
         self.top_dist = origin[1] - ul[1]
         self.bottom_dist = bl[1] - origin[1]
@@ -45,12 +56,12 @@ class CircleReticle:
         if radius <= 5000:
             # 0th order circle
             if self.order >= 0:
-                self.pen = Pen("000000", thickness=Unit(2))
+                self.pen = Pen("ffffff", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center(self.origin, None, Unit(radius), Unit(radius),
                                                              Brush.no_brush(), self.pen))
             # 1st order reflections
             if self.order >= 1:
-                self.pen = Pen("444444", thickness=Unit(2))
+                self.pen = Pen("dddddd", thickness=Unit(2))
                 self.objects.append(
                     Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist, self.origin[1]), None,
                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
@@ -64,7 +75,7 @@ class CircleReticle:
                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
             # 2nd order reflections
             if self.order >= 2:
-                self.pen = Pen("888888", thickness=Unit(2))
+                self.pen = Pen("bbbbbb", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
                                                               self.origin[1] - 2 * self.top_dist), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
@@ -79,7 +90,7 @@ class CircleReticle:
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
             # 3rd order reflections
             if self.order >= 3:
-                self.pen = Pen("cccccc", thickness=Unit(2))
+                self.pen = Pen("999999", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
                                                               self.origin[1]), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
@@ -144,7 +155,7 @@ class CircleReticle:
 
 
 class LineReticle:
-    def __init__(self, ul, ur, bl, br, direction, id = 0):
+    def __init__(self, ul, ur, bl, br, direction, id = 0, pen=None):
         self.id = id
         self.init_time = time.time()
         self.ul = ul
@@ -154,7 +165,7 @@ class LineReticle:
         self.box_width = (ur[0] - ul[0]).base_value
         self.box_height = abs((ul[1] - bl[1]).base_value)
         self.objects = []
-        self.pen = Pen("000000", thickness=Unit(4))
+        self.pen = pen
         self.drum_positions = []
         self.tick = 1
         self.distances = []
@@ -225,12 +236,12 @@ class Drum:
         self.init_time = time.time()
         self.x = location[0]
         self.y = location[1]
-        self.pen = Pen("000000", thickness=Unit(2))
+        self.pen = table_pen
         self.objects = []
         self.rad = 25
         self.drum_num = drum_num
         Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen)
-        Text(self.loc, None, str(drum_num))
+        Text(self.loc, None, str(drum_num), pen=self.pen)
 
     def animate(self):
         radius = (time.time() - self.init_time) * 30
@@ -250,16 +261,19 @@ class Drum:
 
 
 class Scroller:
-    def __init__(self, drum_num):
+    def __init__(self, drum_num, time_to_hit=2):
         self.init_time = time.time()
         self.drum_num = drum_num
         self.objects = []
+        self.time_to_hit = time_to_hit
+        self.travel_to_hit = 450
+        self.rate = self.travel_to_hit/self.time_to_hit
 
     def animate(self):
         for i in self.objects:
             i.remove()
         self.objects = []
-        pos = (time.time() - self.init_time) * 200
+        pos = (time.time() - self.init_time) * self.rate
         if self.drum_num > 4:
             offset = 480
             if pos < 500:
@@ -316,19 +330,19 @@ def key_handler(event):
     if event.event_type == KeyEventType.PRESS:
         if event.code == 16777236:
             id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "right", id)
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "right", id, table_pen)
             reticles[id].set_drum_locations(drums)
         if event.code == 16777234:
             id = get_id()
-            reticles[id] = (LineReticle(ULP, URP, BLP, BRP, "left", id))
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "left", id, table_pen)
             reticles[id].set_drum_locations(drums)
         if event.code == 16777235:
             id = get_id()
-            reticles[id] = (LineReticle(ULP, URP, BLP, BRP, "up", id))
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "up", id, table_pen)
             reticles[id].set_drum_locations(drums)
         if event.code == 16777237:
             id = get_id()
-            reticles[id] = (LineReticle(ULP, URP, BLP, BRP, "down", id))
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "down", id, table_pen)
             reticles[id].set_drum_locations(drums)
         if event.code == 48:
             scrollers.append(Scroller(0))
@@ -384,8 +398,11 @@ def initialize():
 if __name__ == '__main__':
     neoscore.setup()
 
+    neoscore.set_background_brush("#000000")
     count = 0
+
     pen = Pen("000000", thickness=Unit(2))
+    table_pen = Pen("ffffff", thickness=Unit(2))
     ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
     reticles = {}
