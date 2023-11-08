@@ -2,9 +2,7 @@
 # Partial straight-line reticles
 # Radar reticles (variable length)
 # Synchronize scrollers to drum hits
-# Instantiate drums w/ keyboard
 # Cleanup scrollers (make into dict. with ID nums)
-# Change color scheme for projection onto instruments
 # Make multiple scroller shapes (regular, X, buzz (z), tremolo (//))
 # Animate drum-hits
 # Variable velocity reticles
@@ -146,16 +144,18 @@ class CircleReticle:
         global scrollers
         for i in distances:
             if self.prev_rad / 2 < i[0] < radius / 2:
-                scrollers.append(Scroller(i[1]))
+                id = get_id()
+                scrollers[id] = Scroller(i[1], scroll_time, id)
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
         for i in drums_array:
-            self.drum_positions.append((i.x.base_value, i.y.base_value, i.drum_num))
+            self.drum_positions.append((drums_array[i].x.base_value, drums_array[i].y.base_value,
+                                        drums_array[i].drum_num))
 
 
 class LineReticle:
-    def __init__(self, ul, ur, bl, br, direction, id = 0, pen=None):
+    def __init__(self, ul, ur, bl, br, direction, id=0, pen=None):
         self.id = id
         self.init_time = time.time()
         self.ul = ul
@@ -210,44 +210,57 @@ class LineReticle:
     def _check_for_contact(self, pos):
         global scrollers
         for i in self.drum_positions:
-            match self.direction:
-                case "right":
-                    if self.prev_pos < i[0] < pos:
-                        scrollers.append(Scroller(i[2]))
-                case "down":
-                    if self.prev_pos < i[1] < pos:
-                        scrollers.append(Scroller(i[2]))
-                case "left":
-                    if self.prev_pos > i[0] > pos:
-                        scrollers.append(Scroller(i[2]))
-                case "up":
-                    if self.prev_pos > i[1] > pos:
-                        scrollers.append(Scroller(i[2]))
+            if i[3]:
+                match self.direction:
+                    case "right":
+                        if self.prev_pos < i[0] < pos:
+                            id = get_id()
+                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                    case "down":
+                        if self.prev_pos < i[1] < pos:
+                            id = get_id()
+                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                    case "left":
+                        if self.prev_pos > i[0] > pos:
+                            id = get_id()
+                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                    case "up":
+                        if self.prev_pos > i[1] > pos:
+                            id = get_id()
+                            scrollers[id] = Scroller(i[2], scroll_time, id)
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
         for i in drums_array:
-            self.drum_positions.append((i.x.base_value, i.y.base_value, i.drum_num))
+            self.drum_positions.append((drums_array[i].x.base_value, drums_array[i].y.base_value,
+                                        drums_array[i].drum_num, drums_array[i].reveal))
 
 
 class Drum:
-    def __init__(self, location, drum_num):
+    def __init__(self, location, drum_num, reveal=True):
         self.loc = location
         self.init_time = time.time()
         self.x = location[0]
         self.y = location[1]
-        self.pen = table_pen
         self.objects = []
         self.rad = 25
         self.drum_num = drum_num
-        Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen)
-        Text(self.loc, None, str(drum_num), pen=self.pen)
+        self.reveal = reveal
+        if self.reveal:
+            self.pen = table_pen
+        else:
+            self.pen = Pen.no_pen()
+        self.objects.append(Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen))
+        self.objects.append(Text(self.loc, None, str(drum_num), pen=self.pen))
 
     def animate(self):
         radius = (time.time() - self.init_time) * 30
         for i in self.objects:
             i.remove()
         self.objects = []
+        self.objects.append(
+            Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen))
+        self.objects.append(Text(self.loc, None, str(self.drum_num), pen=self.pen))
         if radius < self.rad:
             self.objects.append(Path.ellipse_from_center(self.loc, None, Unit(radius), Unit(radius),
                                                          brush=Brush("#11111166"), pen=self.pen))
@@ -259,30 +272,44 @@ class Drum:
     def reset_animation(self):
         self.init_time = time.time()
 
+    def toggle(self):
+        self.reveal = not self.reveal
+        print(self.reveal)
+        if self.reveal:
+            self.pen = table_pen
+        else:
+            self.pen = Pen.no_pen()
+        self.reset_animation()
+
 
 class Scroller:
-    def __init__(self, drum_num, time_to_hit=2):
+    def __init__(self, drum_num, time_to_hit=2, id=0):
         self.init_time = time.time()
         self.drum_num = drum_num
         self.objects = []
         self.time_to_hit = time_to_hit
         self.travel_to_hit = 450
         self.rate = self.travel_to_hit/self.time_to_hit
+        self.id = id
 
     def animate(self):
         for i in self.objects:
             i.remove()
         self.objects = []
         pos = (time.time() - self.init_time) * self.rate
-        if self.drum_num > 4:
+        if self.drum_num > 5:
             offset = 480
             if pos < 500:
-                self.objects.append(MusicText((Unit((1920 / 4) - pos + offset), Unit(10 * (self.drum_num - 4))),
+                self.objects.append(MusicText((Unit((1920 / 4) - pos + offset), Unit(10 * (self.drum_num - 5))),
                                               None, "noteheadBlack", MusicFont("Bravura", Unit(8))))
+            else:
+                return self.id
         else:
             if pos < 500:
                 self.objects.append(MusicText((Unit((1920 / 4) - pos), Unit(10 * (self.drum_num + 1))),
                                               None, "noteheadBlack", MusicFont("Bravura", Unit(8))))
+            else:
+                return self.id
 
 
 def get_id():
@@ -291,11 +318,14 @@ def get_id():
     return count
 
 
-def cleanup(trash):
-    global reticles
+def cleanup(dict_name, trash):
+    global reticles, scrollers
     for i in trash:
         if type(i) == int:
-            del reticles[i]
+            if dict_name == "reticles":
+                del reticles[i]
+            elif dict_name == "scrollers":
+                del scrollers[i]
 
 
 def redraw_top_layer():
@@ -307,9 +337,9 @@ def redraw_top_layer():
     top_layer.append(Path.rect(URP, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
-    top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(60)), pen=pen))
-    top_layer.append(Path.straight_line((Unit(555), Unit(0)), None, (Unit(0), Unit(60)), pen=pen))
-    top_layer.append(Path.rect((Unit(455), Unit(0)), None, Unit(50), Unit(60)))
+    top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(80)), pen=pen))
+    top_layer.append(Path.straight_line((Unit(555), Unit(0)), None, (Unit(0), Unit(80)), pen=pen))
+    top_layer.append(Path.rect((Unit(455), Unit(0)), None, Unit(50), Unit(80)))
 
 
 def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
@@ -317,17 +347,19 @@ def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
     trash = []
     for i in reticles:
         trash.append(reticles[i].animate())
-    cleanup(trash)
+    cleanup("reticles", trash)
     for i in drums:
-        i.animate()
+        drums[i].animate()
     redraw_top_layer()
     trash = []
     for i in scrollers:
-        i.animate()
+        trash.append(scrollers[i].animate())
+    cleanup("scrollers", trash)
 
 
 def key_handler(event):
     if event.event_type == KeyEventType.PRESS:
+        print(event.code)
         if event.code == 16777236:
             id = get_id()
             reticles[id] = LineReticle(ULP, URP, BLP, BRP, "right", id, table_pen)
@@ -345,25 +377,59 @@ def key_handler(event):
             reticles[id] = LineReticle(ULP, URP, BLP, BRP, "down", id, table_pen)
             reticles[id].set_drum_locations(drums)
         if event.code == 48:
-            scrollers.append(Scroller(0))
+            id = get_id()
+            scrollers[id] = Scroller(0, scroll_time, id)
         if event.code == 49:
-            scrollers.append(Scroller(1))
+            id = get_id()
+            scrollers[id] = Scroller(1, scroll_time, id)
         if event.code == 50:
-            scrollers.append(Scroller(2))
+            id = get_id()
+            scrollers[id] = Scroller(2, scroll_time, id)
         if event.code == 51:
-            scrollers.append(Scroller(3))
+            id = get_id()
+            scrollers[id] = Scroller(3, scroll_time, id)
         if event.code == 52:
-            scrollers.append(Scroller(4))
+            id = get_id()
+            scrollers[id] = Scroller(4, scroll_time, id)
         if event.code == 53:
-            scrollers.append(Scroller(5))
+            id = get_id()
+            scrollers[id] = Scroller(5, scroll_time, id)
         if event.code == 54:
-            scrollers.append(Scroller(6))
+            id = get_id()
+            scrollers[id] = Scroller(6, scroll_time, id)
         if event.code == 55:
-            scrollers.append(Scroller(7))
+            id = get_id()
+            scrollers[id] = Scroller(7, scroll_time, id)
         if event.code == 56:
-            scrollers.append(Scroller(8))
+            id = get_id()
+            scrollers[id] = Scroller(8, scroll_time, id)
         if event.code == 57:
-            scrollers.append(Scroller(9))
+            id = get_id()
+            scrollers[id] = Scroller(9, scroll_time, id)
+        if event.code == 81:
+            drums[0].toggle()
+        if event.code == 65:
+            drums[1].toggle()
+        if event.code == 90:
+            drums[2].toggle()
+        if event.code == 87:
+            drums[3].toggle()
+        if event.code == 83:
+            drums[4].toggle()
+        if event.code == 88:
+            drums[5].toggle()
+        if event.code == 69:
+            drums[6].toggle()
+        if event.code == 68:
+            drums[7].toggle()
+        if event.code == 67:
+            drums[8].toggle()
+        if event.code == 82:
+            drums[9].toggle()
+        if event.code == 70:
+            drums[10].toggle()
+        if event.code == 86:
+            drums[11].toggle()
         # for i in drums:
         #     i.reset_animation()
 
@@ -378,8 +444,8 @@ def mouse_handler(event):
 
 
 def initialize():
-    upper_left_point = (Unit(0), Unit(60))
-    upper_right_point = (Unit(1920 / 2), Unit(60))
+    upper_left_point = (Unit(0), Unit(80))
+    upper_right_point = (Unit(1920 / 2), Unit(80))
     bottom_left_point = (Unit(0), Unit(1080 / 2))
     bottom_right_point = (Unit(1920 / 2), Unit(1080 / 2))
     upper_left = Path.ellipse(upper_left_point, None, Unit(0), Unit(0), pen=pen)
@@ -406,18 +472,21 @@ if __name__ == '__main__':
     ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
     reticles = {}
-    drums = []
-    scrollers = []
-    drums.append(Drum((Unit(300), Unit(400)), 0))
-    drums.append(Drum((Unit(240), Unit(200)), 1))
-    drums.append(Drum((Unit(350), Unit(460)), 2))
-    drums.append(Drum((Unit(452), Unit(200)), 3))
-    drums.append(Drum((Unit(500), Unit(179)), 4))
-    drums.append(Drum((Unit(643), Unit(449)), 5))
-    drums.append(Drum((Unit(678), Unit(376)), 6))
-    drums.append(Drum((Unit(776), Unit(168)), 7))
-    drums.append(Drum((Unit(789), Unit(356)), 8))
-    drums.append(Drum((Unit(896), Unit(268)), 9))
+    drums = {}
+    scrollers = {}
+    scroll_time = 2
+    drums[0] = Drum((Unit(80), Unit(330)), 0)
+    drums[1] = Drum((Unit(120), Unit(390)), 1)
+    drums[2] = Drum((Unit(160), Unit(450)), 2)
+    drums[3] = Drum((Unit(250), Unit(300)), 3)
+    drums[4] = Drum((Unit(300), Unit(350)), 4)
+    drums[5] = Drum((Unit(350), Unit(400)), 5)
+    drums[6] = Drum((Unit(520), Unit(200)), 6)
+    drums[7] = Drum((Unit(460), Unit(300)), 7)
+    drums[8] = Drum((Unit(400), Unit(400)), 8)
+    drums[9] = Drum((Unit(710), Unit(120)), 9)
+    drums[10] = Drum((Unit(660), Unit(200)), 10)
+    drums[11] = Drum((Unit(610), Unit(280)), 11)
     MusicText((Unit(-20), Unit(100)), None, "noteheadBlack",
               MusicFont("Bravura", Unit(6)))
 
