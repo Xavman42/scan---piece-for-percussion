@@ -1,8 +1,5 @@
 # TO DO
-# Partial straight-line reticles
-# Radar reticles (variable length)
 # Make multiple scroller shapes (regular, X, buzz (z), tremolo (//))
-# Animate drum-hits
 # Variable velocity reticles
 
 import math
@@ -234,16 +231,17 @@ class CircleReticle:
 
     def _check_for_contact(self, radius, distances):
         global scrollers
-        for i in distances:
-            if self.prev_rad / 2 < i[0] < radius / 2:
-                id = get_id()
-                scrollers[id] = Scroller(i[1], scroll_time, id)
+        for idx, i in enumerate(distances):
+            if self.drum_positions[idx%12][3]:
+                if self.prev_rad / 2 < i[0] < radius / 2:
+                    id = get_id()
+                    scrollers[id] = Scroller(i[1], scroll_time, id)
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
         for i in drums_array:
             self.drum_positions.append((drums_array[i].x.base_value, drums_array[i].y.base_value,
-                                        drums_array[i].drum_num))
+                                        drums_array[i].drum_num, drums_array[i].reveal))
 
 
 class LineReticle:
@@ -351,6 +349,104 @@ class LineReticle:
                             scrollers[id] = Scroller(i[2], scroll_time, id)
                     case "up":
                         if self.prev_pos > i[1] > pos:
+                            id = get_id()
+                            scrollers[id] = Scroller(i[2], scroll_time, id)
+
+    def set_drum_locations(self, drums_array):
+        self.drum_positions = []
+        for i in drums_array:
+            self.drum_positions.append((drums_array[i].x.base_value, drums_array[i].y.base_value,
+                                        drums_array[i].drum_num, drums_array[i].reveal))
+
+
+class RadarReticle:
+    def __init__(self, ul, ur, bl, br, direction, id=0, pen=None):
+        self.id = id
+        self.init_time = time.time()
+        self.ul = ul
+        self.ur = ur
+        self.bl = bl
+        self.br = br
+        self.box_width = (ur[0] - ul[0]).base_value
+        self.box_height = abs((ul[1] - bl[1]).base_value)
+        self.origin = (Unit(self.box_width/2), Unit(self.box_height/2))
+        self.length = 1000
+        self.objects = []
+        self.pen = pen
+        self.drum_positions = []
+        self.tick = 1
+        self.angles = []
+        self.direction = direction
+        self.prev_angle = 0
+
+    def animate(self):
+        trash2 = None
+        trash1 = self._animate_trace()
+        if (time.time() - self.init_time) > 2:
+            trash2 = self._animate_actual()
+        return trash1, trash2
+
+    def _animate_trace(self):
+        match self.direction:
+            case "cw":
+                angle = (time.time() - self.init_time) * 0.5
+            case "ccw":
+                angle = - (time.time() - self.init_time) * 0.5
+        for i in self.objects:
+            i.remove()
+        self.objects = []
+        if abs(angle) < 2 * math.pi:
+            self.objects.append(Path.straight_line(self.origin, None,
+                                                   (self.length * Unit(math.cos(angle)),
+                                                    self.length * Unit(math.sin(angle))),
+                                                   brush=Brush.no_brush(), pen=Pen.no_pen()))
+            if self.tick == 1:
+                self.angles = self._calculate_reticle_to_drums()
+                self.tick = 2
+            self._check_for_contact(angle)
+        self.prev_angle = angle
+
+    def _animate_actual(self):
+        match self.direction:
+            case "cw":
+                angle = (time.time() - self.init_time - 2) * 0.5
+            case "ccw":
+                angle = - (time.time() - self.init_time - 2) * 0.5
+        for i in self.objects:
+            i.remove()
+        self.objects = []
+        if abs(angle) < 2*math.pi:
+            self.objects.append(Path.straight_line(self.origin, None,
+                                                   (self.length * Unit(math.cos(angle)),
+                                                    self.length * Unit(math.sin(angle))),
+                                                   brush=Brush.no_brush(), pen=self.pen))
+        else:
+            return self.id
+
+    def _calculate_reticle_to_drums(self):
+        angles = []
+        for i in self.objects:
+            for j in self.drum_positions:
+                origin_to_drum = math.sqrt((self.origin[0].base_value - j[0]) ** 2 +
+                                           (self.origin[1].base_value - j[1]) ** 2)
+                angle_to_drum = math.acos((j[0] - self.origin[0].base_value) / origin_to_drum)
+                if j[1] < self.origin[1].base_value:
+                    angle_to_drum = (-angle_to_drum)%(2*math.pi)
+                print(j[2], math.degrees(angle_to_drum), j[0])
+                angles.append(angle_to_drum)
+        return angles
+
+    def _check_for_contact(self, angle):
+        global scrollers
+        for idx, i in enumerate(self.drum_positions):
+            if i[3]:
+                match self.direction:
+                    case "cw":
+                        if self.prev_angle < self.angles[idx] < angle:
+                            id = get_id()
+                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                    case "ccw":
+                        if self.prev_angle%(2*math.pi) > self.angles[idx] > angle%(2*math.pi):
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id)
 
@@ -504,6 +600,14 @@ def key_handler(event):
         if event.code == 16777237:
             id = get_id()
             reticles[id] = LineReticle(ULP, URP, BLP, BRP, "down", id, table_pen)
+            reticles[id].set_drum_locations(drums)
+        if event.code == 91:
+            id = get_id()
+            reticles[id] = RadarReticle(ULP, URP, BLP, BRP, "cw", id, table_pen)
+            reticles[id].set_drum_locations(drums)
+        if event.code == 93:
+            id = get_id()
+            reticles[id] = RadarReticle(ULP, URP, BLP, BRP, "ccw", id, table_pen)
             reticles[id].set_drum_locations(drums)
         if event.code == 48:
             id = get_id()
