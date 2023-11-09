@@ -1,8 +1,6 @@
 # TO DO
 # Partial straight-line reticles
 # Radar reticles (variable length)
-# Synchronize scrollers to drum hits
-# Cleanup scrollers (make into dict. with ID nums)
 # Make multiple scroller shapes (regular, X, buzz (z), tremolo (//))
 # Animate drum-hits
 # Variable velocity reticles
@@ -47,7 +45,101 @@ class CircleReticle:
         self.distances = []
 
     def animate(self):
+        trash2 = None
+        trash1 = self._animate_trace()
+        if (time.time() - self.init_time) > 2:
+            trash2 = self._animate_actual()
+        return trash1, trash2
+
+    def _animate_trace(self):
         radius = (time.time() - self.init_time) * 200 + 1
+        for i in self.objects:
+            i.remove()
+        self.objects = []
+        if radius <= 5000:
+            # 0th order circle
+            if self.order >= 0:
+                self.pen = Pen("ffffff", thickness=Unit(2))
+                self.objects.append(Path.ellipse_from_center(self.origin, None, Unit(radius), Unit(radius),
+                                                             Brush.no_brush(), Pen.no_pen()))
+            # 1st order reflections
+            if self.order >= 1:
+                self.pen = Pen("dddddd", thickness=Unit(2))
+                self.objects.append(
+                    Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist, self.origin[1]), None,
+                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(
+                    Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist, self.origin[1]), None,
+                                             Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
+                self.objects.append(Path.ellipse_from_center((self.origin[0], self.origin[1] - 2 * self.top_dist), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(
+                    Path.ellipse_from_center((self.origin[0], self.origin[1] + 2 * self.bottom_dist), None,
+                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+            # 2nd order reflections
+            if self.order >= 2:
+                self.pen = Pen("bbbbbb", thickness=Unit(2))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
+                                                              self.origin[1] - 2 * self.top_dist), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
+                                                              self.origin[1] + 2 * self.bottom_dist), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist,
+                                                              self.origin[1] - 2 * self.top_dist), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist,
+                                                              self.origin[1] + 2 * self.bottom_dist), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+            # 3rd order reflections
+            if self.order >= 3:
+                self.pen = Pen("999999", thickness=Unit(2))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
+                                                              self.origin[1]), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * Unit(self.box_width),
+                                                              self.origin[1]), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0],
+                                                              self.origin[1] + 2 * Unit(self.box_height)), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0],
+                                                              self.origin[1] - 2 * Unit(self.box_height)), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
+                                                              self.origin[1] - 2 * self.top_dist), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
+                                                              self.origin[1] + 2 * Unit(self.box_height)), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * Unit(self.box_width),
+                                                              self.origin[1] - 2 * self.top_dist), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist,
+                                                              self.origin[1] + 2 * Unit(self.box_height)), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
+                                                              self.origin[1] + 2 * self.bottom_dist), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
+                                                              self.origin[1] - 2 * Unit(self.box_height)), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * Unit(self.box_width),
+                                                              self.origin[1] + 2 * self.bottom_dist), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist,
+                                                              self.origin[1] - 2 * Unit(self.box_height)), None,
+                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+            if self.tick == 1:
+                self.distances = self._calculate_reticle_to_drums()
+                self.tick = 2
+            self._check_for_contact(radius, self.distances)
+        else:
+            return self.id
+        self.prev_rad = radius
+
+    def _animate_actual(self):
+        radius = (time.time() - self.init_time - 2) * 200 + 1
         for i in self.objects:
             i.remove()
         self.objects = []
@@ -128,10 +220,10 @@ class CircleReticle:
             if self.tick == 1:
                 self.distances = self._calculate_reticle_to_drums()
                 self.tick = 2
-            self._check_for_contact(radius, self.distances)
+            # self._check_for_contact(radius, self.distances)
         else:
             return self.id
-        self.prev_rad = radius
+        # self.prev_rad = radius
 
     def _calculate_reticle_to_drums(self):
         distances = []
@@ -181,6 +273,13 @@ class LineReticle:
                 self.prev_pos = self.box_height
 
     def animate(self):
+        trash2 = None
+        trash1 = self._animate_trace()
+        if (time.time() - self.init_time) > 2:
+            trash2 = self._animate_actual()
+        return trash1, trash2
+
+    def _animate_trace(self):
         match self.direction:
             case "right":
                 pos = (time.time() - self.init_time) * 200
@@ -193,6 +292,33 @@ class LineReticle:
         for i in self.objects:
             i.remove()
         self.objects = []
+        if -self.box_width <= pos <= (self.box_width * 2):
+            if self.direction == "right" or self.direction == "left":
+                self.objects.append(Path.straight_line((Unit(pos), self.ul[1]), None,
+                                                       (Unit(0), Unit(self.box_height)), None,
+                                                       Brush.no_brush(), Pen.no_pen()))
+            if self.direction == "up" or self.direction == "down":
+                self.objects.append(Path.straight_line((Unit(0), Unit(pos) + self.ul[1]), None,
+                                                       (Unit(self.box_width), Unit(0)), None,
+                                                       Brush.no_brush(), pen.no_pen()))
+            self._check_for_contact(pos)
+        else:
+            return self.id
+        self.prev_pos = pos
+
+    def _animate_actual(self):
+        match self.direction:
+            case "right":
+                pos = (time.time() - self.init_time - 2) * 200
+            case "left":
+                pos = self.box_width - (time.time() - self.init_time - 2) * 200
+            case "down":
+                pos = (time.time() - self.init_time - 2) * 200
+            case "up":
+                pos = self.box_height - (time.time() - self.init_time - 2) * 200
+        for i in self.objects:
+            i.remove()
+        self.objects = []
         if 0 <= pos <= self.box_width:
             if self.direction == "right" or self.direction == "left":
                 self.objects.append(Path.straight_line((Unit(pos), self.ul[1]), None,
@@ -202,10 +328,9 @@ class LineReticle:
                 self.objects.append(Path.straight_line((Unit(0), Unit(pos) + self.ul[1]), None,
                                                        (Unit(self.box_width), Unit(0)), None,
                                                        Brush.no_brush(), self.pen))
-            self._check_for_contact(pos)
+            # self._check_for_contact(pos)
         else:
             return self.id
-        self.prev_pos = pos
 
     def _check_for_contact(self, pos):
         global scrollers
@@ -321,9 +446,13 @@ def get_id():
 def cleanup(dict_name, trash):
     global reticles, scrollers
     for i in trash:
-        if type(i) == int:
+        if type(i) == int or type(i) == tuple:
             if dict_name == "reticles":
-                del reticles[i]
+                try:
+                    del reticles[i[0]]
+                    del reticles[i[1]]
+                except:
+                    pass
             elif dict_name == "scrollers":
                 del scrollers[i]
 
