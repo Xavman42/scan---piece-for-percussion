@@ -141,7 +141,7 @@ class CircleReticle:
         for i in self.objects:
             i.remove()
         self.objects = []
-        if radius <= 5000:
+        if radius <= 4000:
             # 0th order circle
             if self.order >= 0:
                 self.pen = Pen("ffffff", thickness=Unit(2))
@@ -405,6 +405,10 @@ class RadarReticle:
                 self.angles = self._calculate_reticle_to_drums()
                 self.tick = 2
             self._check_for_contact(angle)
+        elif abs(angle) < 3 * math.pi:
+            pass
+        else:
+            return self.id
         self.prev_angle = angle
 
     def _animate_actual(self):
@@ -541,6 +545,7 @@ def get_id():
 
 def cleanup(dict_name, trash):
     global reticles, scrollers
+    print(trash)
     for i in trash:
         if type(i) == int or type(i) == tuple:
             if dict_name == "reticles":
@@ -562,26 +567,22 @@ def redraw_top_layer():
     top_layer.append(Path.rect(URP, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    top_layer.append(Path.straight_line((Unit(0), Unit(10)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(20)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(30)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(40)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(50)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(60)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
     top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(80)), pen=pen))
     top_layer.append(Path.straight_line((Unit(555), Unit(0)), None, (Unit(0), Unit(80)), pen=pen))
     top_layer.append(Path.rect((Unit(455), Unit(0)), None, Unit(50), Unit(80)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(10)), None, (Unit(1000), Unit(0)),
-                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.DOT)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(20)), None, (Unit(1000), Unit(0)),
-                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.DASH)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(30)), None, (Unit(1000), Unit(0)),
-                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(40)), None, (Unit(1000), Unit(0)),
-                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.DOT)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(50)), None, (Unit(1000), Unit(0)),
-                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.DASH)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(60)), None, (Unit(1000), Unit(0)),
-                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.SOLID)))
 
-
-
-def select_pen(num):
-    pass
 
 def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
     global reticles
@@ -706,11 +707,8 @@ def initialize():
     Path.straight_line(zero, upper_right, zero, bottom_right, pen=pen)
     Path.straight_line(zero, bottom_right, zero, bottom_left, pen=pen)
     Path.straight_line(zero, bottom_left, zero, upper_left, pen=pen)
-    pen_style_dictionary ={
-        "solid": 1
-    }
     return upper_left_point, upper_right_point, bottom_left_point, bottom_right_point, \
-        upper_left, upper_right, bottom_left, bottom_right, zero, pen_style_dictionary
+        upper_left, upper_right, bottom_left, bottom_right, zero
 
 
 if __name__ == '__main__':
@@ -721,7 +719,7 @@ if __name__ == '__main__':
 
     pen = Pen("000000", thickness=Unit(2))
     table_pen = Pen("ffffff", thickness=Unit(2))
-    ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero, pen_style_dict = initialize()
+    ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
     reticles = {}
     drums = {}
