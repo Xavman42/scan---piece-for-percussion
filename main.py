@@ -14,6 +14,7 @@ from neoscore.core.music_font import MusicFont
 from neoscore.core.music_text import MusicText
 from neoscore.core.path import Path
 from neoscore.core.pen import Pen
+from neoscore.core.pen_pattern import PenPattern
 from neoscore.core.text import Text
 from neoscore.core.units import Unit
 
@@ -564,7 +565,23 @@ def redraw_top_layer():
     top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(80)), pen=pen))
     top_layer.append(Path.straight_line((Unit(555), Unit(0)), None, (Unit(0), Unit(80)), pen=pen))
     top_layer.append(Path.rect((Unit(455), Unit(0)), None, Unit(50), Unit(80)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(10)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.DOT)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(20)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.DASH)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(30)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(40)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.DOT)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(50)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.DASH)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(60)), None, (Unit(1000), Unit(0)),
+                                        pen=Pen("000000", thickness=Unit(3), pattern=PenPattern.SOLID)))
 
+
+
+def select_pen(num):
+    pass
 
 def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
     global reticles
@@ -689,8 +706,11 @@ def initialize():
     Path.straight_line(zero, upper_right, zero, bottom_right, pen=pen)
     Path.straight_line(zero, bottom_right, zero, bottom_left, pen=pen)
     Path.straight_line(zero, bottom_left, zero, upper_left, pen=pen)
+    pen_style_dictionary ={
+        "solid": 1
+    }
     return upper_left_point, upper_right_point, bottom_left_point, bottom_right_point, \
-        upper_left, upper_right, bottom_left, bottom_right, zero
+        upper_left, upper_right, bottom_left, bottom_right, zero, pen_style_dictionary
 
 
 if __name__ == '__main__':
@@ -701,7 +721,7 @@ if __name__ == '__main__':
 
     pen = Pen("000000", thickness=Unit(2))
     table_pen = Pen("ffffff", thickness=Unit(2))
-    ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
+    ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero, pen_style_dict = initialize()
     top_layer = []
     reticles = {}
     drums = {}
