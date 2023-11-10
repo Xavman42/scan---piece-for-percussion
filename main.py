@@ -432,7 +432,6 @@ class RadarReticle:
                 angle_to_drum = math.acos((j[0] - self.origin[0].base_value) / origin_to_drum)
                 if j[1] < self.origin[1].base_value:
                     angle_to_drum = (-angle_to_drum)%(2*math.pi)
-                print(j[2], math.degrees(angle_to_drum), j[0])
                 angles.append(angle_to_drum)
         return angles
 
