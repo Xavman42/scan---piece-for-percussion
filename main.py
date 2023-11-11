@@ -1,5 +1,4 @@
 # TO DO
-# Make multiple scroller shapes (regular, X, buzz (z), tremolo (//))
 # Variable velocity reticles
 
 import math
@@ -57,12 +56,10 @@ class CircleReticle:
         if radius <= 5000:
             # 0th order circle
             if self.order >= 0:
-                self.pen = Pen("ffffff", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center(self.origin, None, Unit(radius), Unit(radius),
                                                              Brush.no_brush(), Pen.no_pen()))
             # 1st order reflections
             if self.order >= 1:
-                self.pen = Pen("dddddd", thickness=Unit(2))
                 self.objects.append(
                     Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist, self.origin[1]), None,
                                              Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
@@ -76,7 +73,6 @@ class CircleReticle:
                                              Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
             # 2nd order reflections
             if self.order >= 2:
-                self.pen = Pen("bbbbbb", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
                                                               self.origin[1] - 2 * self.top_dist), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
@@ -91,7 +87,6 @@ class CircleReticle:
                                                              Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
             # 3rd order reflections
             if self.order >= 3:
-                self.pen = Pen("999999", thickness=Unit(2))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
                                                               self.origin[1]), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
@@ -144,12 +139,12 @@ class CircleReticle:
         if radius <= 4000:
             # 0th order circle
             if self.order >= 0:
-                self.pen = Pen("ffffff", thickness=Unit(2))
+                # self.pen.color = "ffffff"
                 self.objects.append(Path.ellipse_from_center(self.origin, None, Unit(radius), Unit(radius),
                                                              Brush.no_brush(), self.pen))
             # 1st order reflections
             if self.order >= 1:
-                self.pen = Pen("dddddd", thickness=Unit(2))
+                # self.pen.color = "dddddd"
                 self.objects.append(
                     Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist, self.origin[1]), None,
                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
@@ -163,7 +158,7 @@ class CircleReticle:
                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
             # 2nd order reflections
             if self.order >= 2:
-                self.pen = Pen("bbbbbb", thickness=Unit(2))
+                # self.pen.color = "bbbbbb"
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
                                                               self.origin[1] - 2 * self.top_dist), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
@@ -178,7 +173,7 @@ class CircleReticle:
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
             # 3rd order reflections
             if self.order >= 3:
-                self.pen = Pen("999999", thickness=Unit(2))
+                # self.pen.color = "999999"
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
                                                               self.origin[1]), None,
                                                              Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
@@ -236,7 +231,8 @@ class CircleReticle:
             if self.drum_positions[idx%12][3]:
                 if self.prev_rad / 2 < i[0] < radius / 2:
                     id = get_id()
-                    scrollers[id] = Scroller(i[1], scroll_time, id)
+                    scrollers[id] = Scroller(i[1], scroll_time, id, str(self.pen.__getattribute__("pattern")),
+                                             self.pen.__getattribute__("color"))
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -339,19 +335,23 @@ class LineReticle:
                     case "right":
                         if self.prev_pos < i[0] < pos:
                             id = get_id()
-                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                            scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
+                                             self.pen.__getattribute__("color"))
                     case "down":
                         if self.prev_pos < i[1] < pos:
                             id = get_id()
-                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                            scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
+                                             self.pen.__getattribute__("color"))
                     case "left":
                         if self.prev_pos > i[0] > pos:
                             id = get_id()
-                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                            scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
+                                             self.pen.__getattribute__("color"))
                     case "up":
                         if self.prev_pos > i[1] > pos:
                             id = get_id()
-                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                            scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
+                                             self.pen.__getattribute__("color"))
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -448,11 +448,13 @@ class RadarReticle:
                     case "cw":
                         if self.prev_angle < self.angles[idx] < angle:
                             id = get_id()
-                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                            scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
+                                             self.pen.__getattribute__("color"))
                     case "ccw":
                         if self.prev_angle%(2*math.pi) > self.angles[idx] > angle%(2*math.pi):
                             id = get_id()
-                            scrollers[id] = Scroller(i[2], scroll_time, id)
+                            scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
+                                             self.pen.__getattribute__("color"))
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -508,7 +510,8 @@ class Drum:
 
 
 class Scroller:
-    def __init__(self, drum_num, time_to_hit=2, id=0):
+    def __init__(self, drum_num, time_to_hit=2, id=0,
+                 ret_pattern="PenPattern.SOLID", brush=Brush("666666")):
         self.init_time = time.time()
         self.drum_num = drum_num
         self.objects = []
@@ -516,6 +519,27 @@ class Scroller:
         self.travel_to_hit = 450
         self.rate = self.travel_to_hit/self.time_to_hit
         self.id = id
+        match ret_pattern:
+            case "PenPattern.SOLID":
+                self.dynamic = "dynamicForte"
+                self.brush = brush
+                self.note_head = "noteheadBlack"
+            case "PenPattern.DASH":
+                self.dynamic = "dynamicMezzo"
+                self.brush = brush
+                self.note_head = "noteheadHeavyX"
+            case "PenPattern.DOT":
+                self.dynamic = "dynamicPiano"
+                self.brush = brush
+                self.note_head = "noteheadLargeArrowDownBlack"
+        if str(self.brush) == "Color(255, 255, 255, 255)":
+            self.brush = Brush()
+        elif str(self.brush) == "Color(221, 221, 221, 255)":
+            self.brush = Brush("222222")
+        elif str(self.brush) == "Color(153, 153, 153, 255)":
+            self.brush = Brush("444444")
+
+
 
     def animate(self):
         for i in self.objects:
@@ -526,13 +550,17 @@ class Scroller:
             offset = 480
             if pos < 500:
                 self.objects.append(MusicText((Unit((1920 / 4) - pos + offset), Unit(10 * (self.drum_num - 5))),
-                                              None, "noteheadBlack", MusicFont("Bravura", Unit(8))))
+                                              None, self.note_head, MusicFont("Bravura", Unit(8)), brush=self.brush))
+                # self.objects.append(MusicText((Unit((1920 / 4) - pos + offset), Unit(75)),
+                #                               None, self.dynamic, MusicFont("Bravura", Unit(8))))
             else:
                 return self.id
         else:
             if pos < 500:
                 self.objects.append(MusicText((Unit((1920 / 4) - pos), Unit(10 * (self.drum_num + 1))),
-                                              None, "noteheadBlack", MusicFont("Bravura", Unit(8))))
+                                              None, self.note_head, MusicFont("Bravura", Unit(8)), brush=self.brush))
+                # self.objects.append(MusicText((Unit((1920 / 4) - pos), Unit(75)),
+                #                               None, self.dynamic, MusicFont("Bravura", Unit(8))))
             else:
                 return self.id
 
@@ -545,7 +573,6 @@ def get_id():
 
 def cleanup(dict_name, trash):
     global reticles, scrollers
-    print(trash)
     for i in trash:
         if type(i) == int or type(i) == tuple:
             if dict_name == "reticles":
@@ -600,86 +627,101 @@ def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
 
 
 def key_handler(event):
+    global ret_pen
     if event.event_type == KeyEventType.PRESS:
         print(event.code)
-        if event.code == 16777236:
+        if event.code == 16777236:  # right arrow
             id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "right", id, table_pen)
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "right", id, ret_pen)
             reticles[id].set_drum_locations(drums)
-        if event.code == 16777234:
+        if event.code == 16777234:  # left arrow
             id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "left", id, table_pen)
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "left", id, ret_pen)
             reticles[id].set_drum_locations(drums)
-        if event.code == 16777235:
+        if event.code == 16777235:  # up arrow
             id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "up", id, table_pen)
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "up", id, ret_pen)
             reticles[id].set_drum_locations(drums)
-        if event.code == 16777237:
+        if event.code == 16777237:  # down arrow
             id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "down", id, table_pen)
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "down", id, ret_pen)
             reticles[id].set_drum_locations(drums)
-        if event.code == 91:
+        if event.code == 91:  # [
             id = get_id()
-            reticles[id] = RadarReticle(ULP, URP, BLP, BRP, "cw", id, table_pen)
+            reticles[id] = RadarReticle(ULP, URP, BLP, BRP, "cw", id, ret_pen)
             reticles[id].set_drum_locations(drums)
-        if event.code == 93:
+        if event.code == 93:  # ]
             id = get_id()
-            reticles[id] = RadarReticle(ULP, URP, BLP, BRP, "ccw", id, table_pen)
+            reticles[id] = RadarReticle(ULP, URP, BLP, BRP, "ccw", id, ret_pen)
             reticles[id].set_drum_locations(drums)
-        if event.code == 48:
+        if event.code == 48:  # 0
             id = get_id()
             scrollers[id] = Scroller(0, scroll_time, id)
-        if event.code == 49:
+        if event.code == 49:  # 1
             id = get_id()
             scrollers[id] = Scroller(1, scroll_time, id)
-        if event.code == 50:
+        if event.code == 50:  # 2
             id = get_id()
             scrollers[id] = Scroller(2, scroll_time, id)
-        if event.code == 51:
+        if event.code == 51:  # 3
             id = get_id()
             scrollers[id] = Scroller(3, scroll_time, id)
-        if event.code == 52:
+        if event.code == 52:  # 4
             id = get_id()
             scrollers[id] = Scroller(4, scroll_time, id)
-        if event.code == 53:
+        if event.code == 53:  # 5
             id = get_id()
             scrollers[id] = Scroller(5, scroll_time, id)
-        if event.code == 54:
+        if event.code == 54:  # 6
             id = get_id()
             scrollers[id] = Scroller(6, scroll_time, id)
-        if event.code == 55:
+        if event.code == 55:  # 7
             id = get_id()
             scrollers[id] = Scroller(7, scroll_time, id)
-        if event.code == 56:
+        if event.code == 56:  # 8
             id = get_id()
             scrollers[id] = Scroller(8, scroll_time, id)
-        if event.code == 57:
+        if event.code == 57:  # 9
             id = get_id()
             scrollers[id] = Scroller(9, scroll_time, id)
-        if event.code == 81:
+        if event.code == 81:  # Q
             drums[0].toggle()
-        if event.code == 65:
+        if event.code == 65:  # A
             drums[1].toggle()
-        if event.code == 90:
+        if event.code == 90:  # Z
             drums[2].toggle()
-        if event.code == 87:
+        if event.code == 87:  # W
             drums[3].toggle()
-        if event.code == 83:
+        if event.code == 83:  # S
             drums[4].toggle()
-        if event.code == 88:
+        if event.code == 88:  # X
             drums[5].toggle()
-        if event.code == 69:
+        if event.code == 69:  # E
             drums[6].toggle()
-        if event.code == 68:
+        if event.code == 68:  # D
             drums[7].toggle()
-        if event.code == 67:
+        if event.code == 67:  # C
             drums[8].toggle()
-        if event.code == 82:
+        if event.code == 82:  # R
             drums[9].toggle()
-        if event.code == 70:
+        if event.code == 70:  # F
             drums[10].toggle()
-        if event.code == 86:
+        if event.code == 86:  # V
             drums[11].toggle()
+        if event.code == 44:  # ,
+            ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=Unit(2), pattern=PenPattern.DASH)
+        if event.code == 46:  # .
+            ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=Unit(2), pattern=PenPattern.DOT)
+        if event.code == 47:  # /
+            ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=Unit(2), pattern=PenPattern.SOLID)
+        if event.code == 74:  # J
+            ret_pen = Pen("ffffff", thickness=Unit(2), pattern=ret_pen.__getattribute__("pattern"))
+        if event.code == 75:  # K
+            ret_pen = Pen("ff0000", thickness=Unit(2), pattern=ret_pen.__getattribute__("pattern"))
+        if event.code == 76:  # L
+            ret_pen = Pen("00ff00", thickness=Unit(2), pattern=ret_pen.__getattribute__("pattern"))
+        if event.code == 59:  # ;
+            ret_pen = Pen("0000ff", thickness=Unit(2), pattern=ret_pen.__getattribute__("pattern"))
         # for i in drums:
         #     i.reset_animation()
 
@@ -689,7 +731,7 @@ def mouse_handler(event):
         x, y = event.document_pos
         if ULP[0] < x < URP[0] and ULP[1] < y < BLP[1]:
             id = get_id()
-            reticles[id] = CircleReticle((x, y), ULP, URP, BLP, BRP, id)
+            reticles[id] = CircleReticle((x, y), ULP, URP, BLP, BRP, id, pen=ret_pen)
             reticles[id].set_drum_locations(drums)
 
 
@@ -719,6 +761,7 @@ if __name__ == '__main__':
 
     pen = Pen("000000", thickness=Unit(2))
     table_pen = Pen("ffffff", thickness=Unit(2))
+    ret_pen = Pen("ffffff", thickness=Unit(2), pattern=PenPattern.DOT)
     ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
     reticles = {}
@@ -739,7 +782,6 @@ if __name__ == '__main__':
     drums[11] = Drum((Unit(610), Unit(280)), 11)
     MusicText((Unit(-20), Unit(100)), None, "noteheadBlack",
               MusicFont("Bravura", Unit(6)))
-
     neoscore.set_key_event_handler(key_handler)
     neoscore.set_mouse_event_handler(mouse_handler)
     neoscore.set_viewport_center_pos((Unit(480), Unit(270)))
