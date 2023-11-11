@@ -390,7 +390,7 @@ class RadarReticle:
         self.br = br
         self.box_width = (ur[0] - ul[0]).base_value
         self.box_height = abs((ul[1] - bl[1]).base_value)
-        self.origin = (Unit(self.box_width / 2), Unit(self.box_height / 2))
+        self.origin = (Unit(self.box_width / 2), Unit(4*self.box_height / 5))
         self.length = 1000
         self.objects = []
         self.pen = pen
@@ -417,7 +417,7 @@ class RadarReticle:
         for i in self.objects:
             i.remove()
         self.objects = []
-        if abs(angle) < 4 * math.pi:
+        if abs(angle) < 2 * math.pi:
             self.objects.append(Path.straight_line(self.origin, None,
                                                    (self.length * Unit(math.cos(angle)),
                                                     self.length * Unit(math.sin(angle))),
@@ -426,7 +426,7 @@ class RadarReticle:
                 self.angles = self._calculate_reticle_to_drums()
                 self.tick = 2
             self._check_for_contact(angle)
-        elif abs(angle) < 3 * math.pi:
+        elif abs(angle) < 4 * math.pi:
             pass
         else:
             return self.id
@@ -554,12 +554,7 @@ class Scroller:
                 self.dynamic = "dynamicPiano"
                 self.brush = brush
                 self.note_head = "noteheadLargeArrowDownBlack"
-        if str(self.brush) == "Color(255, 255, 255, 255)":
-            self.brush = Brush()
-        elif str(self.brush) == "Color(221, 221, 221, 255)":
-            self.brush = Brush("222222")
-        elif str(self.brush) == "Color(153, 153, 153, 255)":
-            self.brush = Brush("444444")
+
 
     def animate(self):
         for i in self.objects:
@@ -598,7 +593,7 @@ def redraw_top_layer():
     for i in top_layer:
         i.remove()
     top_layer = []
-    top_layer.append(Path.rect(ULP, None, Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    top_layer.append(Path.rect(ULP, None, Unit(2000), -Unit(2000), Brush("#222222"), Pen.no_pen()))
     top_layer.append(Path.rect(URP, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
@@ -763,21 +758,21 @@ def initialize():
 
 if __name__ == '__main__':
     neoscore.setup()
-    screen_width = 1920
-    screen_height = 1080
+    screen_width = int(1920/2)
+    screen_height = int(1080/2)
+    scroll_time = 2
 
     neoscore.set_background_brush("#000000")
     count = 0
 
     pen = Pen("000000", thickness=Unit(2))
     table_pen = Pen("ffffff", thickness=Unit(2))
-    ret_pen = Pen("ffffff", thickness=Unit(2), pattern=PenPattern.SOLID)
+    ret_pen = Pen("ffffff", thickness=Unit(4), pattern=PenPattern.SOLID)
     ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
     reticles = {}
     drums = {}
     scrollers = {}
-    scroll_time = 10
     velo = 200
     drums[0] = Drum((Unit(80), Unit(330)), 0)
     drums[1] = Drum((Unit(120), Unit(390)), 1)
