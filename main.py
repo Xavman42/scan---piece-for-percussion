@@ -1,5 +1,6 @@
 # TO DO
 # Variable velocity reticles
+# Make top area a darker color (so I don't have to change brush color between areas...)
 
 import math
 import time
@@ -19,7 +20,7 @@ from neoscore.core.units import Unit
 
 
 class CircleReticle:
-    def __init__(self, origin, ul, ur, bl, br, id, order=1, pen=None):
+    def __init__(self, origin, ul, ur, bl, br, id, order=1, pen=None, velocity=200):
         self.origin = origin
         self.id = id
         self.init_time = time.time()
@@ -39,21 +40,22 @@ class CircleReticle:
         self.drum_positions = []
         self.prev_rad = 0
         self.tick = 1
+        self.velocity = velocity
         self.distances = []
 
     def animate(self):
         trash2 = None
         trash1 = self._animate_trace()
-        if (time.time() - self.init_time) > 2:
+        if (time.time() - self.init_time) > scroll_time:
             trash2 = self._animate_actual()
         return trash1, trash2
 
     def _animate_trace(self):
-        radius = (time.time() - self.init_time) * 200 + 1
+        radius = (time.time() - self.init_time) * self.velocity + 1
         for i in self.objects:
             i.remove()
         self.objects = []
-        if radius <= 5000:
+        if radius <= screen_width * 5:
             # 0th order circle
             if self.order >= 0:
                 self.objects.append(Path.ellipse_from_center(self.origin, None, Unit(radius), Unit(radius),
@@ -65,9 +67,10 @@ class CircleReticle:
                                              Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
                 self.objects.append(
                     Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist, self.origin[1]), None,
-                                             Unit(radius), Unit(radius), Brush.no_brush(), self.pen))
-                self.objects.append(Path.ellipse_from_center((self.origin[0], self.origin[1] - 2 * self.top_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                self.objects.append(
+                    Path.ellipse_from_center((self.origin[0], self.origin[1] - 2 * self.top_dist), None,
+                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
                 self.objects.append(
                     Path.ellipse_from_center((self.origin[0], self.origin[1] + 2 * self.bottom_dist), None,
                                              Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
@@ -75,54 +78,70 @@ class CircleReticle:
             if self.order >= 2:
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
                                                               self.origin[1] - 2 * self.top_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
                                                               self.origin[1] + 2 * self.bottom_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist,
                                                               self.origin[1] - 2 * self.top_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist,
                                                               self.origin[1] + 2 * self.bottom_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
             # 3rd order reflections
             if self.order >= 3:
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
                                                               self.origin[1]), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * Unit(self.box_width),
                                                               self.origin[1]), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0],
                                                               self.origin[1] + 2 * Unit(self.box_height)), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0],
                                                               self.origin[1] - 2 * Unit(self.box_height)), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
                                                               self.origin[1] - 2 * self.top_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
                                                               self.origin[1] + 2 * Unit(self.box_height)), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * Unit(self.box_width),
                                                               self.origin[1] - 2 * self.top_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist,
                                                               self.origin[1] + 2 * Unit(self.box_height)), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * Unit(self.box_width),
                                                               self.origin[1] + 2 * self.bottom_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] + 2 * self.right_dist,
                                                               self.origin[1] - 2 * Unit(self.box_height)), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * Unit(self.box_width),
                                                               self.origin[1] + 2 * self.bottom_dist), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
                 self.objects.append(Path.ellipse_from_center((self.origin[0] - 2 * self.left_dist,
                                                               self.origin[1] - 2 * Unit(self.box_height)), None,
-                                                             Unit(radius), Unit(radius), Brush.no_brush(), Pen.no_pen()))
+                                                             Unit(radius), Unit(radius), Brush.no_brush(),
+                                                             Pen.no_pen()))
             if self.tick == 1:
                 self.distances = self._calculate_reticle_to_drums()
                 self.tick = 2
@@ -132,11 +151,11 @@ class CircleReticle:
         self.prev_rad = radius
 
     def _animate_actual(self):
-        radius = (time.time() - self.init_time - 2) * 200 + 1
+        radius = (time.time() - self.init_time - scroll_time) * self.velocity + 1
         for i in self.objects:
             i.remove()
         self.objects = []
-        if radius <= 4000:
+        if radius <= screen_width * 4:
             # 0th order circle
             if self.order >= 0:
                 # self.pen.color = "ffffff"
@@ -228,7 +247,7 @@ class CircleReticle:
     def _check_for_contact(self, radius, distances):
         global scrollers
         for idx, i in enumerate(distances):
-            if self.drum_positions[idx%12][3]:
+            if self.drum_positions[idx % 12][3]:
                 if self.prev_rad / 2 < i[0] < radius / 2:
                     id = get_id()
                     scrollers[id] = Scroller(i[1], scroll_time, id, str(self.pen.__getattribute__("pattern")),
@@ -242,7 +261,7 @@ class CircleReticle:
 
 
 class LineReticle:
-    def __init__(self, ul, ur, bl, br, direction, id=0, pen=None):
+    def __init__(self, ul, ur, bl, br, direction, id=0, pen=None, velocity=200):
         self.id = id
         self.init_time = time.time()
         self.ul = ul
@@ -255,6 +274,7 @@ class LineReticle:
         self.pen = pen
         self.drum_positions = []
         self.tick = 1
+        self.velocity = velocity
         self.distances = []
         self.direction = direction
         match self.direction:
@@ -270,24 +290,24 @@ class LineReticle:
     def animate(self):
         trash2 = None
         trash1 = self._animate_trace()
-        if (time.time() - self.init_time) > 2:
+        if (time.time() - self.init_time) > scroll_time:
             trash2 = self._animate_actual()
         return trash1, trash2
 
     def _animate_trace(self):
         match self.direction:
             case "right":
-                pos = (time.time() - self.init_time) * 200
+                pos = (time.time() - self.init_time) * self.velocity
             case "left":
-                pos = self.box_width - (time.time() - self.init_time) * 200
+                pos = self.box_width - (time.time() - self.init_time) * self.velocity
             case "down":
-                pos = (time.time() - self.init_time) * 200
+                pos = (time.time() - self.init_time) * self.velocity
             case "up":
-                pos = self.box_height - (time.time() - self.init_time) * 200
+                pos = self.box_height - (time.time() - self.init_time) * self.velocity
         for i in self.objects:
             i.remove()
         self.objects = []
-        if -self.box_width <= pos <= (self.box_width * 2):
+        if -3 * self.box_width <= pos <= (self.box_width * 3):
             if self.direction == "right" or self.direction == "left":
                 self.objects.append(Path.straight_line((Unit(pos), self.ul[1]), None,
                                                        (Unit(0), Unit(self.box_height)), None,
@@ -295,7 +315,7 @@ class LineReticle:
             if self.direction == "up" or self.direction == "down":
                 self.objects.append(Path.straight_line((Unit(0), Unit(pos) + self.ul[1]), None,
                                                        (Unit(self.box_width), Unit(0)), None,
-                                                       Brush.no_brush(), pen.no_pen()))
+                                                       Brush.no_brush(), Pen.no_pen()))
             self._check_for_contact(pos)
         else:
             return self.id
@@ -304,13 +324,13 @@ class LineReticle:
     def _animate_actual(self):
         match self.direction:
             case "right":
-                pos = (time.time() - self.init_time - 2) * 200
+                pos = (time.time() - self.init_time - scroll_time) * self.velocity
             case "left":
-                pos = self.box_width - (time.time() - self.init_time - 2) * 200
+                pos = self.box_width - (time.time() - self.init_time - scroll_time) * self.velocity
             case "down":
-                pos = (time.time() - self.init_time - 2) * 200
+                pos = (time.time() - self.init_time - scroll_time) * self.velocity
             case "up":
-                pos = self.box_height - (time.time() - self.init_time - 2) * 200
+                pos = self.box_height - (time.time() - self.init_time - scroll_time) * self.velocity
         for i in self.objects:
             i.remove()
         self.objects = []
@@ -336,22 +356,22 @@ class LineReticle:
                         if self.prev_pos < i[0] < pos:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
-                                             self.pen.__getattribute__("color"))
+                                                     self.pen.__getattribute__("color"))
                     case "down":
                         if self.prev_pos < i[1] < pos:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
-                                             self.pen.__getattribute__("color"))
+                                                     self.pen.__getattribute__("color"))
                     case "left":
                         if self.prev_pos > i[0] > pos:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
-                                             self.pen.__getattribute__("color"))
+                                                     self.pen.__getattribute__("color"))
                     case "up":
                         if self.prev_pos > i[1] > pos:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
-                                             self.pen.__getattribute__("color"))
+                                                     self.pen.__getattribute__("color"))
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -361,7 +381,7 @@ class LineReticle:
 
 
 class RadarReticle:
-    def __init__(self, ul, ur, bl, br, direction, id=0, pen=None):
+    def __init__(self, ul, ur, bl, br, direction, id=0, pen=None, velocity=0.5):
         self.id = id
         self.init_time = time.time()
         self.ul = ul
@@ -370,12 +390,13 @@ class RadarReticle:
         self.br = br
         self.box_width = (ur[0] - ul[0]).base_value
         self.box_height = abs((ul[1] - bl[1]).base_value)
-        self.origin = (Unit(self.box_width/2), Unit(self.box_height/2))
+        self.origin = (Unit(self.box_width / 2), Unit(self.box_height / 2))
         self.length = 1000
         self.objects = []
         self.pen = pen
         self.drum_positions = []
         self.tick = 1
+        self.velocity = velocity
         self.angles = []
         self.direction = direction
         self.prev_angle = 0
@@ -383,20 +404,20 @@ class RadarReticle:
     def animate(self):
         trash2 = None
         trash1 = self._animate_trace()
-        if (time.time() - self.init_time) > 2:
+        if (time.time() - self.init_time) > scroll_time:
             trash2 = self._animate_actual()
         return trash1, trash2
 
     def _animate_trace(self):
         match self.direction:
             case "cw":
-                angle = (time.time() - self.init_time) * 0.5
+                angle = (time.time() - self.init_time) * self.velocity
             case "ccw":
-                angle = - (time.time() - self.init_time) * 0.5
+                angle = - (time.time() - self.init_time) * self.velocity
         for i in self.objects:
             i.remove()
         self.objects = []
-        if abs(angle) < 2 * math.pi:
+        if abs(angle) < 4 * math.pi:
             self.objects.append(Path.straight_line(self.origin, None,
                                                    (self.length * Unit(math.cos(angle)),
                                                     self.length * Unit(math.sin(angle))),
@@ -414,13 +435,13 @@ class RadarReticle:
     def _animate_actual(self):
         match self.direction:
             case "cw":
-                angle = (time.time() - self.init_time - 2) * 0.5
+                angle = (time.time() - self.init_time - scroll_time) * self.velocity
             case "ccw":
-                angle = - (time.time() - self.init_time - 2) * 0.5
+                angle = - (time.time() - self.init_time - scroll_time) * self.velocity
         for i in self.objects:
             i.remove()
         self.objects = []
-        if abs(angle) < 2*math.pi:
+        if abs(angle) < 2 * math.pi:
             self.objects.append(Path.straight_line(self.origin, None,
                                                    (self.length * Unit(math.cos(angle)),
                                                     self.length * Unit(math.sin(angle))),
@@ -436,7 +457,7 @@ class RadarReticle:
                                            (self.origin[1].base_value - j[1]) ** 2)
                 angle_to_drum = math.acos((j[0] - self.origin[0].base_value) / origin_to_drum)
                 if j[1] < self.origin[1].base_value:
-                    angle_to_drum = (-angle_to_drum)%(2*math.pi)
+                    angle_to_drum = (-angle_to_drum) % (2 * math.pi)
                 angles.append(angle_to_drum)
         return angles
 
@@ -449,12 +470,12 @@ class RadarReticle:
                         if self.prev_angle < self.angles[idx] < angle:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
-                                             self.pen.__getattribute__("color"))
+                                                     self.pen.__getattribute__("color"))
                     case "ccw":
-                        if self.prev_angle%(2*math.pi) > self.angles[idx] > angle%(2*math.pi):
+                        if self.prev_angle % (2 * math.pi) > self.angles[idx] > angle % (2 * math.pi):
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
-                                             self.pen.__getattribute__("color"))
+                                                     self.pen.__getattribute__("color"))
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -477,7 +498,8 @@ class Drum:
             self.pen = table_pen
         else:
             self.pen = Pen.no_pen()
-        self.objects.append(Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen))
+        self.objects.append(
+            Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen))
         self.objects.append(Text(self.loc, None, str(drum_num), pen=self.pen))
 
     def animate(self):
@@ -516,8 +538,8 @@ class Scroller:
         self.drum_num = drum_num
         self.objects = []
         self.time_to_hit = time_to_hit
-        self.travel_to_hit = 450
-        self.rate = self.travel_to_hit/self.time_to_hit
+        self.travel_to_hit = screen_width - 50
+        self.rate = self.travel_to_hit / self.time_to_hit
         self.id = id
         match ret_pattern:
             case "PenPattern.SOLID":
@@ -539,30 +561,16 @@ class Scroller:
         elif str(self.brush) == "Color(153, 153, 153, 255)":
             self.brush = Brush("444444")
 
-
-
     def animate(self):
         for i in self.objects:
             i.remove()
         self.objects = []
         pos = (time.time() - self.init_time) * self.rate
-        if self.drum_num > 5:
-            offset = 480
-            if pos < 500:
-                self.objects.append(MusicText((Unit((1920 / 4) - pos + offset), Unit(10 * (self.drum_num - 5))),
-                                              None, self.note_head, MusicFont("Bravura", Unit(8)), brush=self.brush))
-                # self.objects.append(MusicText((Unit((1920 / 4) - pos + offset), Unit(75)),
-                #                               None, self.dynamic, MusicFont("Bravura", Unit(8))))
-            else:
-                return self.id
+        if pos < screen_width:
+            self.objects.append(MusicText((Unit(screen_width - pos), Unit(10 * (self.drum_num + 1))),
+                                          None, self.note_head, MusicFont("Bravura", Unit(8)), brush=self.brush))
         else:
-            if pos < 500:
-                self.objects.append(MusicText((Unit((1920 / 4) - pos), Unit(10 * (self.drum_num + 1))),
-                                              None, self.note_head, MusicFont("Bravura", Unit(8)), brush=self.brush))
-                # self.objects.append(MusicText((Unit((1920 / 4) - pos), Unit(75)),
-                #                               None, self.dynamic, MusicFont("Bravura", Unit(8))))
-            else:
-                return self.id
+            return self.id
 
 
 def get_id():
@@ -594,21 +602,31 @@ def redraw_top_layer():
     top_layer.append(Path.rect(URP, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
-    top_layer.append(Path.straight_line((Unit(0), Unit(10)), None, (Unit(1000), Unit(0)),
+    top_layer.append(Path.straight_line((Unit(0), Unit(10)), None, (Unit(screen_width), Unit(0)),
                                         pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(20)), None, (Unit(1000), Unit(0)),
+    top_layer.append(Path.straight_line((Unit(0), Unit(20)), None, (Unit(screen_width), Unit(0)),
                                         pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(30)), None, (Unit(1000), Unit(0)),
+    top_layer.append(Path.straight_line((Unit(0), Unit(30)), None, (Unit(screen_width), Unit(0)),
                                         pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(40)), None, (Unit(1000), Unit(0)),
+    top_layer.append(Path.straight_line((Unit(0), Unit(40)), None, (Unit(screen_width), Unit(0)),
                                         pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(50)), None, (Unit(1000), Unit(0)),
+    top_layer.append(Path.straight_line((Unit(0), Unit(50)), None, (Unit(screen_width), Unit(0)),
                                         pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(60)), None, (Unit(1000), Unit(0)),
+    top_layer.append(Path.straight_line((Unit(0), Unit(60)), None, (Unit(screen_width), Unit(0)),
                                         pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(80)), pen=pen))
-    top_layer.append(Path.straight_line((Unit(555), Unit(0)), None, (Unit(0), Unit(80)), pen=pen))
-    top_layer.append(Path.rect((Unit(455), Unit(0)), None, Unit(50), Unit(80)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(70)), None, (Unit(screen_width), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(80)), None, (Unit(screen_width), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(90)), None, (Unit(screen_width), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(100)), None, (Unit(screen_width), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(110)), None, (Unit(screen_width), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
+    top_layer.append(Path.straight_line((Unit(0), Unit(120)), None, (Unit(screen_width), Unit(0)),
+                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(160)), pen=pen))
 
 
 def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
@@ -627,24 +645,24 @@ def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
 
 
 def key_handler(event):
-    global ret_pen
+    global ret_pen, velo
     if event.event_type == KeyEventType.PRESS:
         print(event.code)
         if event.code == 16777236:  # right arrow
             id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "right", id, ret_pen)
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "right", id, ret_pen, velocity=velo)
             reticles[id].set_drum_locations(drums)
         if event.code == 16777234:  # left arrow
             id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "left", id, ret_pen)
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "left", id, ret_pen, velocity=velo)
             reticles[id].set_drum_locations(drums)
         if event.code == 16777235:  # up arrow
             id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "up", id, ret_pen)
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "up", id, ret_pen, velocity=velo)
             reticles[id].set_drum_locations(drums)
         if event.code == 16777237:  # down arrow
             id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "down", id, ret_pen)
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, "down", id, ret_pen, velocity=velo)
             reticles[id].set_drum_locations(drums)
         if event.code == 91:  # [
             id = get_id()
@@ -655,35 +673,25 @@ def key_handler(event):
             reticles[id] = RadarReticle(ULP, URP, BLP, BRP, "ccw", id, ret_pen)
             reticles[id].set_drum_locations(drums)
         if event.code == 48:  # 0
-            id = get_id()
-            scrollers[id] = Scroller(0, scroll_time, id)
+            velo = 10
         if event.code == 49:  # 1
-            id = get_id()
-            scrollers[id] = Scroller(1, scroll_time, id)
+            velo = 20
         if event.code == 50:  # 2
-            id = get_id()
-            scrollers[id] = Scroller(2, scroll_time, id)
+            velo = 40
         if event.code == 51:  # 3
-            id = get_id()
-            scrollers[id] = Scroller(3, scroll_time, id)
+            velo = 60
         if event.code == 52:  # 4
-            id = get_id()
-            scrollers[id] = Scroller(4, scroll_time, id)
+            velo = 80
         if event.code == 53:  # 5
-            id = get_id()
-            scrollers[id] = Scroller(5, scroll_time, id)
+            velo = 100
         if event.code == 54:  # 6
-            id = get_id()
-            scrollers[id] = Scroller(6, scroll_time, id)
+            velo = 150
         if event.code == 55:  # 7
-            id = get_id()
-            scrollers[id] = Scroller(7, scroll_time, id)
+            velo = 200
         if event.code == 56:  # 8
-            id = get_id()
-            scrollers[id] = Scroller(8, scroll_time, id)
+            velo = 250
         if event.code == 57:  # 9
-            id = get_id()
-            scrollers[id] = Scroller(9, scroll_time, id)
+            velo = 300
         if event.code == 81:  # Q
             drums[0].toggle()
         if event.code == 65:  # A
@@ -731,15 +739,15 @@ def mouse_handler(event):
         x, y = event.document_pos
         if ULP[0] < x < URP[0] and ULP[1] < y < BLP[1]:
             id = get_id()
-            reticles[id] = CircleReticle((x, y), ULP, URP, BLP, BRP, id, pen=ret_pen)
+            reticles[id] = CircleReticle((x, y), ULP, URP, BLP, BRP, id, pen=ret_pen, velocity=velo)
             reticles[id].set_drum_locations(drums)
 
 
 def initialize():
-    upper_left_point = (Unit(0), Unit(80))
-    upper_right_point = (Unit(1920 / 2), Unit(80))
-    bottom_left_point = (Unit(0), Unit(1080 / 2))
-    bottom_right_point = (Unit(1920 / 2), Unit(1080 / 2))
+    upper_left_point = (Unit(0), Unit(160))
+    upper_right_point = (Unit(screen_width), Unit(160))
+    bottom_left_point = (Unit(0), Unit(screen_height))
+    bottom_right_point = (Unit(screen_width), Unit(screen_height))
     upper_left = Path.ellipse(upper_left_point, None, Unit(0), Unit(0), pen=pen)
     upper_right = Path.ellipse(upper_right_point, None, Unit(0), Unit(0), pen=pen)
     bottom_left = Path.ellipse(bottom_left_point, None, Unit(0), Unit(0), pen=pen)
@@ -755,19 +763,22 @@ def initialize():
 
 if __name__ == '__main__':
     neoscore.setup()
+    screen_width = 1920
+    screen_height = 1080
 
     neoscore.set_background_brush("#000000")
     count = 0
 
     pen = Pen("000000", thickness=Unit(2))
     table_pen = Pen("ffffff", thickness=Unit(2))
-    ret_pen = Pen("ffffff", thickness=Unit(2), pattern=PenPattern.DOT)
+    ret_pen = Pen("ffffff", thickness=Unit(2), pattern=PenPattern.SOLID)
     ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
     reticles = {}
     drums = {}
     scrollers = {}
-    scroll_time = 2
+    scroll_time = 10
+    velo = 200
     drums[0] = Drum((Unit(80), Unit(330)), 0)
     drums[1] = Drum((Unit(120), Unit(390)), 1)
     drums[2] = Drum((Unit(160), Unit(450)), 2)
@@ -777,13 +788,14 @@ if __name__ == '__main__':
     drums[6] = Drum((Unit(520), Unit(200)), 6)
     drums[7] = Drum((Unit(460), Unit(300)), 7)
     drums[8] = Drum((Unit(400), Unit(400)), 8)
-    drums[9] = Drum((Unit(710), Unit(120)), 9)
-    drums[10] = Drum((Unit(660), Unit(200)), 10)
-    drums[11] = Drum((Unit(610), Unit(280)), 11)
+    drums[9] = Drum((Unit(710), Unit(220)), 9)
+    drums[10] = Drum((Unit(660), Unit(300)), 10)
+    drums[11] = Drum((Unit(610), Unit(380)), 11)
     MusicText((Unit(-20), Unit(100)), None, "noteheadBlack",
               MusicFont("Bravura", Unit(6)))
     neoscore.set_key_event_handler(key_handler)
     neoscore.set_mouse_event_handler(mouse_handler)
-    neoscore.set_viewport_center_pos((Unit(480), Unit(270)))
+
+    neoscore.set_viewport_center_pos((Unit(screen_width / 2), Unit(screen_height / 2)))
     neoscore.show(refresh_func, display_page_geometry=False, auto_viewport_interaction_enabled=False,
-                  min_window_size=((960, 540)), max_window_size=((960, 540)))
+                  min_window_size=(screen_width, screen_height), max_window_size=(screen_width, screen_height))
