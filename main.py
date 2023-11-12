@@ -624,8 +624,10 @@ def redraw_top_layer():
     top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(160)), pen=pen))
 
 
-def refresh_func(current_time: float) -> Optional[neoscore.RefreshFuncResult]:
+def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
     global reticles
+    piece_time = global_time - start_time
+    sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
         trash.append(reticles[i].animate())
@@ -756,14 +758,38 @@ def initialize():
         upper_left, upper_right, bottom_left, bottom_right, zero
 
 
+def sequence_reticles(piece_time, collection):
+    global reticles
+    if len(collection) > 0:
+        done = collection[0][1](collection[0][2], collection[0][0], piece_time)
+        if done:
+            collection.pop(0)
+
+
+def make_sequencable_collection():
+    def line(direction, onset_time, piece_time):
+        if piece_time > onset_time:
+            id = get_id()
+            reticles[id] = LineReticle(ULP, URP, BLP, BRP, direction, id, ret_pen, velocity=velo)
+            reticles[id].set_drum_locations(drums)
+            return True
+    collection = []
+    collection.append((1, line, "right"))
+    collection.append((2, line, "left"))
+    collection.sort()
+    return collection
+
+
 if __name__ == '__main__':
     neoscore.setup()
     screen_width = int(1920/2)
     screen_height = int(1080/2)
     scroll_time = 2
+    my_sequence = make_sequencable_collection()
 
     neoscore.set_background_brush("#000000")
     count = 0
+    start_time = time.time()
 
     pen = Pen("000000", thickness=Unit(2))
     table_pen = Pen("ffffff", thickness=Unit(2))
