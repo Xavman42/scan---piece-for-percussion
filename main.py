@@ -621,13 +621,14 @@ def redraw_top_layer():
                                         pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
     top_layer.append(Path.straight_line((Unit(0), Unit(120)), None, (Unit(screen_width), Unit(0)),
                                         pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(160)), pen=pen))
+    top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(160)),
+                                        pen=Pen("ffffff", thickness=Unit(4))))
 
 
 def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
     global reticles
     piece_time = global_time - start_time
-    sequence_reticles(piece_time, my_sequence)
+    # sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
         trash.append(reticles[i].animate())
@@ -767,15 +768,93 @@ def sequence_reticles(piece_time, collection):
 
 
 def make_sequencable_collection():
+    def circle(pos, onset_time, piece_time):
+        if piece_time > onset_time:
+            x, y = pos
+            id = get_id()
+            reticles[id] = CircleReticle((x, y), ULP, URP, BLP, BRP, id, pen=ret_pen, velocity=velo)
+            reticles[id].set_drum_locations(drums)
+            return True
+        else:
+            return False
+
     def line(direction, onset_time, piece_time):
         if piece_time > onset_time:
             id = get_id()
             reticles[id] = LineReticle(ULP, URP, BLP, BRP, direction, id, ret_pen, velocity=velo)
             reticles[id].set_drum_locations(drums)
             return True
+        else:
+            return False
+
+    def radar(direction, onset_time, piece_time):
+        if piece_time > onset_time:
+            id = get_id()
+            reticles[id] = RadarReticle(ULP, URP, BLP, BRP, direction, id, ret_pen)
+            reticles[id].set_drum_locations(drums)
+            return True
+        else:
+            return False
+
+    def set_color(color, onset_time, piece_time):
+        global ret_pen
+        if piece_time > onset_time:
+            match color:
+                case "black":
+                    ret_pen = Pen("ffffff", thickness=ret_pen.__getattribute__("thickness"),
+                                  pattern=ret_pen.__getattribute__("pattern"))
+                case "red":
+                    ret_pen = Pen("ff0000", thickness=ret_pen.__getattribute__("thickness"),
+                                  pattern=ret_pen.__getattribute__("pattern"))
+                case "green":
+                    ret_pen = Pen("00ff00", thickness=ret_pen.__getattribute__("thickness"),
+                                  pattern=ret_pen.__getattribute__("pattern"))
+                case "blue":
+                    ret_pen = Pen("0000ff", thickness=ret_pen.__getattribute__("thickness"),
+                                  pattern=ret_pen.__getattribute__("pattern"))
+            return True
+        else:
+            return False
+
+    def set_pattern(pattern, onset_time, piece_time):
+        global ret_pen
+        if piece_time > onset_time:
+            match pattern:
+                case "SOLID":
+                    ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=ret_pen.__getattribute__("thickness"),
+                                  pattern=PenPattern.SOLID)
+                case "DOT":
+                    ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=ret_pen.__getattribute__("thickness"),
+                                  pattern=PenPattern.DOT)
+                case "DASH":
+                    ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=ret_pen.__getattribute__("thickness"),
+                                  pattern=PenPattern.DASH)
+            return True
+        else:
+            return False
+
+    def set_velo(velocity, onset_time, piece_time):
+        global velo
+        if piece_time > onset_time:
+            velo = velocity
+            return True
+        else:
+            return False
+
     collection = []
-    collection.append((1, line, "right"))
-    collection.append((2, line, "left"))
+    for i in range(10):
+        collection.append((3*i, line, "right"))
+    for i in range(10):
+        collection.append((2.75*i+30, line, "down"))
+    for i in range(5):
+        collection.append((2.5*i+57.5, line, "left"))
+    for i in range(4):
+        collection.append((20*i - 0.1, set_velo, 80+10*i))
+    # collection.append((1, circle, (Unit(200), Unit(300))))
+    # collection.append((2, line, "left"))
+    # collection.append((1.75, set_color, "blue"))
+    # collection.append((1.750001, set_pattern, "DOT"))
+    # collection.append((1.5, radar, "ccw"))
     collection.sort()
     return collection
 
@@ -784,7 +863,7 @@ if __name__ == '__main__':
     neoscore.setup()
     screen_width = int(1920/2)
     screen_height = int(1080/2)
-    scroll_time = 2
+    scroll_time = 8
     my_sequence = make_sequencable_collection()
 
     neoscore.set_background_brush("#000000")
@@ -799,19 +878,21 @@ if __name__ == '__main__':
     reticles = {}
     drums = {}
     scrollers = {}
-    velo = 200
-    drums[0] = Drum((Unit(80), Unit(330)), 0)
-    drums[1] = Drum((Unit(120), Unit(390)), 1)
-    drums[2] = Drum((Unit(160), Unit(450)), 2)
-    drums[3] = Drum((Unit(250), Unit(300)), 3)
-    drums[4] = Drum((Unit(300), Unit(350)), 4)
-    drums[5] = Drum((Unit(350), Unit(400)), 5)
-    drums[6] = Drum((Unit(520), Unit(200)), 6)
-    drums[7] = Drum((Unit(460), Unit(300)), 7)
-    drums[8] = Drum((Unit(400), Unit(400)), 8)
-    drums[9] = Drum((Unit(710), Unit(220)), 9)
-    drums[10] = Drum((Unit(660), Unit(300)), 10)
-    drums[11] = Drum((Unit(610), Unit(380)), 11)
+    velo = 80
+    w = screen_width/13
+    h = (screen_height - 160)/13
+    drums[0] = Drum((Unit(1 * w), Unit(1 * h + 160)), 0)
+    drums[1] = Drum((Unit(2 * w), Unit(5 * h + 160)), 1)
+    drums[2] = Drum((Unit(3 * w), Unit(9 * h + 160)), 2)
+    drums[3] = Drum((Unit(4 * w), Unit(2 * h + 160)), 3)
+    drums[4] = Drum((Unit(5 * w), Unit(6 * h + 160)), 4)
+    drums[5] = Drum((Unit(6 * w), Unit(10 * h + 160)), 5)
+    drums[6] = Drum((Unit(9 * w), Unit(3 * h + 160)), 6)
+    drums[7] = Drum((Unit(8 * w), Unit(7 * h + 160)), 7)
+    drums[8] = Drum((Unit(7 * w), Unit(11 * h + 160)), 8)
+    drums[9] = Drum((Unit(12 * w), Unit(4 * h + 160)), 9)
+    drums[10] = Drum((Unit(11 * w), Unit(8 * h + 160)), 10)
+    drums[11] = Drum((Unit(10 * w), Unit(12 * h + 160)), 11)
     MusicText((Unit(-20), Unit(100)), None, "noteheadBlack",
               MusicFont("Bravura", Unit(6)))
     neoscore.set_key_event_handler(key_handler)
