@@ -303,11 +303,11 @@ class LineReticle:
             case "down":
                 pos = (time.time() - self.init_time) * self.velocity
             case "up":
-                pos = self.box_height - (time.time() - self.init_time) * self.velocity
+                pos = self.box_height - (time.time() - self.init_time) * self.velocity + hud_height
         for i in self.objects:
             i.remove()
         self.objects = []
-        if -3 * self.box_width <= pos <= (self.box_width * 3):
+        if -(3 * self.box_width) <= pos <= (self.box_width * 3):
             if self.direction == "right" or self.direction == "left":
                 self.objects.append(Path.straight_line((Unit(pos), self.ul[1]), None,
                                                        (Unit(0), Unit(self.box_height)), None,
@@ -541,6 +541,7 @@ class Scroller:
         self.travel_to_hit = screen_width - 50
         self.rate = self.travel_to_hit / self.time_to_hit
         self.id = id
+        print(self.drum_num)
         match ret_pattern:
             case "PenPattern.SOLID":
                 self.dynamic = "dynamicForte"
@@ -570,7 +571,6 @@ class Scroller:
             case 10: return 9
             case 11: return 11
 
-
     def animate(self):
         for i in self.objects:
             i.remove()
@@ -581,7 +581,7 @@ class Scroller:
                 pen = Pen("999999", Unit(2))
                 self.objects.append(Path.straight_line((Unit(screen_width - pos - 5), Unit(70)), None,
                                                        (Unit(20), Unit(0)), pen=pen))
-            self.objects.append(MusicText((Unit(screen_width - pos), Unit(5 * (self.drum_num + 1)+10)),
+            self.objects.append(MusicText((Unit(screen_width - pos), Unit(5 * (self.get_staff_pos() + 1)+10)),
                                           None, self.note_head, MusicFont("Bravura", Unit(8)), brush=self.brush))
         else:
             return self.id
@@ -619,30 +619,6 @@ def redraw_top_layer():
     for i in range(5):
         top_layer.append(Path.straight_line((Unit(0), Unit(20 + (i*10))), None, (Unit(screen_width), Unit(0)),
                                             pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(10)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(20)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(30)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(40)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(50)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(60)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(70)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(80)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(90)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(100)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(110)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    # top_layer.append(Path.straight_line((Unit(0), Unit(120)), None, (Unit(screen_width), Unit(0)),
-    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
     top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(160)),
                                         pen=Pen("ffffff", thickness=Unit(4))))
 
@@ -764,8 +740,8 @@ def mouse_handler(event):
 
 
 def initialize():
-    upper_left_point = (Unit(0), Unit(160))
-    upper_right_point = (Unit(screen_width), Unit(160))
+    upper_left_point = (Unit(0), Unit(hud_height))
+    upper_right_point = (Unit(screen_width), Unit(hud_height))
     bottom_left_point = (Unit(0), Unit(screen_height))
     bottom_right_point = (Unit(screen_width), Unit(screen_height))
     upper_left = Path.ellipse(upper_left_point, None, Unit(0), Unit(0), pen=pen)
@@ -885,6 +861,7 @@ if __name__ == '__main__':
     neoscore.setup()
     screen_width = int(1920/2)
     screen_height = int(1080/2)
+    hud_height = 160
     scroll_time = 8
     my_sequence = make_sequencable_collection()
 
