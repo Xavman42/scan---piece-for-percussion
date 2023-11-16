@@ -555,6 +555,21 @@ class Scroller:
                 self.brush = brush
                 self.note_head = "noteheadLargeArrowDownBlack"
 
+    def get_staff_pos(self):
+        match self.drum_num:
+            case 0: return 0
+            case 1: return 2
+            case 2: return 4
+            case 3: return 1
+            case 4: return 3
+            case 5: return 5
+            case 6: return 6
+            case 7: return 8
+            case 8: return 10
+            case 9: return 7
+            case 10: return 9
+            case 11: return 11
+
 
     def animate(self):
         for i in self.objects:
@@ -562,7 +577,11 @@ class Scroller:
         self.objects = []
         pos = (time.time() - self.init_time) * self.rate
         if pos < screen_width:
-            self.objects.append(MusicText((Unit(screen_width - pos), Unit(10 * (self.drum_num + 1))),
+            if self.drum_num == 11:
+                pen = Pen("999999", Unit(2))
+                self.objects.append(Path.straight_line((Unit(screen_width - pos - 5), Unit(70)), None,
+                                                       (Unit(20), Unit(0)), pen=pen))
+            self.objects.append(MusicText((Unit(screen_width - pos), Unit(5 * (self.drum_num + 1)+10)),
                                           None, self.note_head, MusicFont("Bravura", Unit(8)), brush=self.brush))
         else:
             return self.id
@@ -597,30 +616,33 @@ def redraw_top_layer():
     top_layer.append(Path.rect(URP, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
-    top_layer.append(Path.straight_line((Unit(0), Unit(10)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(20)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(30)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(40)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(50)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(60)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(70)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(80)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(90)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(100)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(110)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
-    top_layer.append(Path.straight_line((Unit(0), Unit(120)), None, (Unit(screen_width), Unit(0)),
-                                        pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    for i in range(5):
+        top_layer.append(Path.straight_line((Unit(0), Unit(20 + (i*10))), None, (Unit(screen_width), Unit(0)),
+                                            pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(10)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(20)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(30)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(40)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(50)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(60)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(70)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(80)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(90)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(100)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DOT)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(110)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.DASH)))
+    # top_layer.append(Path.straight_line((Unit(0), Unit(120)), None, (Unit(screen_width), Unit(0)),
+    #                                     pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
     top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(160)),
                                         pen=Pen("ffffff", thickness=Unit(4))))
 
