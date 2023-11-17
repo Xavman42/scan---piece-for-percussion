@@ -18,6 +18,9 @@ from neoscore.core.pen_pattern import PenPattern
 from neoscore.core.text import Text
 from neoscore.core.units import Unit
 
+from config import ret_pen, count, screen_width, screen_height, hud_height, ULP, URP, BLP, BRP, UL, UR, BL, BR, velo, \
+    scrollers, reticles, drums
+
 
 class CircleReticle:
     def __init__(self, origin, ul, ur, bl, br, id, order=1, pen=None, velocity=200):
@@ -374,7 +377,9 @@ class LineReticle:
                                                      self.pen.__getattribute__("color"))
 
     def set_drum_locations(self, drums_array):
+        print("function here")
         self.drum_positions = []
+        print(self.drum_positions)
         for i in drums_array:
             self.drum_positions.append((drums_array[i].x.base_value, drums_array[i].y.base_value,
                                         drums_array[i].drum_num, drums_array[i].reveal))
@@ -390,7 +395,7 @@ class RadarReticle:
         self.br = br
         self.box_width = (ur[0] - ul[0]).base_value
         self.box_height = abs((ul[1] - bl[1]).base_value)
-        self.origin = (Unit(self.box_width / 2), Unit(4*self.box_height / 5))
+        self.origin = (Unit(self.box_width / 2), Unit(4 * self.box_height / 5))
         self.length = 1000
         self.objects = []
         self.pen = pen
@@ -495,7 +500,7 @@ class Drum:
         self.drum_num = drum_num
         self.reveal = reveal
         if self.reveal:
-            self.pen = table_pen
+            self.pen = Pen("ffffff", thickness=Unit(2))
         else:
             self.pen = Pen.no_pen()
         self.objects.append(
@@ -525,7 +530,7 @@ class Drum:
         self.reveal = not self.reveal
         print(self.reveal)
         if self.reveal:
-            self.pen = table_pen
+            self.pen = Pen("ffffff", thickness=Unit(2))
         else:
             self.pen = Pen.no_pen()
         self.reset_animation()
@@ -541,7 +546,6 @@ class Scroller:
         self.travel_to_hit = screen_width - 50
         self.rate = self.travel_to_hit / self.time_to_hit
         self.id = id
-        print(self.drum_num)
         match ret_pattern:
             case "PenPattern.SOLID":
                 self.dynamic = "dynamicForte"
@@ -558,18 +562,30 @@ class Scroller:
 
     def get_staff_pos(self):
         match self.drum_num:
-            case 0: return 0
-            case 1: return 2
-            case 2: return 4
-            case 3: return 1
-            case 4: return 3
-            case 5: return 5
-            case 6: return 6
-            case 7: return 8
-            case 8: return 10
-            case 9: return 7
-            case 10: return 9
-            case 11: return 11
+            case 0:
+                return 0
+            case 1:
+                return 2
+            case 2:
+                return 4
+            case 3:
+                return 1
+            case 4:
+                return 3
+            case 5:
+                return 5
+            case 6:
+                return 6
+            case 7:
+                return 8
+            case 8:
+                return 10
+            case 9:
+                return 7
+            case 10:
+                return 9
+            case 11:
+                return 11
 
     def animate(self):
         for i in self.objects:
@@ -581,7 +597,7 @@ class Scroller:
                 pen = Pen("999999", Unit(2))
                 self.objects.append(Path.straight_line((Unit(screen_width - pos - 5), Unit(70)), None,
                                                        (Unit(20), Unit(0)), pen=pen))
-            self.objects.append(MusicText((Unit(screen_width - pos), Unit(5 * (self.get_staff_pos() + 1)+10)),
+            self.objects.append(MusicText((Unit(screen_width - pos), Unit(5 * (self.get_staff_pos() + 1) + 10)),
                                           None, self.note_head, MusicFont("Bravura", Unit(8)), brush=self.brush))
         else:
             return self.id
@@ -607,33 +623,33 @@ def cleanup(dict_name, trash):
                 del scrollers[i]
 
 
-def redraw_top_layer():
-    global top_layer
-    for i in top_layer:
+def redraw_top_layer(top_layer_list, ulp, urp, brp, blp, width):
+    for i in top_layer_list:
         i.remove()
-    top_layer = []
-    top_layer.append(Path.rect(ULP, None, Unit(2000), -Unit(2000), Brush("#222222"), Pen.no_pen()))
-    top_layer.append(Path.rect(URP, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
-    top_layer.append(Path.rect(BRP, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
-    top_layer.append(Path.rect(BLP, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    top_layer_list = []
+    top_layer_list.append(Path.rect(ulp, None, Unit(2000), -Unit(2000), Brush("#222222"), Pen.no_pen()))
+    top_layer_list.append(Path.rect(urp, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    top_layer_list.append(Path.rect(brp, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    top_layer_list.append(Path.rect(blp, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     for i in range(5):
-        top_layer.append(Path.straight_line((Unit(0), Unit(20 + (i*10))), None, (Unit(screen_width), Unit(0)),
-                                            pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
-    top_layer.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(160)),
-                                        pen=Pen("ffffff", thickness=Unit(4))))
+        top_layer_list.append(Path.straight_line((Unit(0), Unit(20 + (i * 10))), None, (Unit(width), Unit(0)),
+                                                 pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
+    top_layer_list.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(hud_height)),
+                                            pen=Pen("ffffff", thickness=Unit(4))))
+    return top_layer_list
 
 
 def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
-    global reticles
+    global reticles, top_layer
     piece_time = global_time - start_time
-    # sequence_reticles(piece_time, my_sequence)
+    sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
         trash.append(reticles[i].animate())
     cleanup("reticles", trash)
     for i in drums:
         drums[i].animate()
-    redraw_top_layer()
+    top_layer = redraw_top_layer(top_layer, ULP, URP, BRP, BLP, screen_width)
     trash = []
     for i in scrollers:
         trash.append(scrollers[i].animate())
@@ -739,115 +755,103 @@ def mouse_handler(event):
             reticles[id].set_drum_locations(drums)
 
 
-def initialize():
-    upper_left_point = (Unit(0), Unit(hud_height))
-    upper_right_point = (Unit(screen_width), Unit(hud_height))
-    bottom_left_point = (Unit(0), Unit(screen_height))
-    bottom_right_point = (Unit(screen_width), Unit(screen_height))
-    upper_left = Path.ellipse(upper_left_point, None, Unit(0), Unit(0), pen=pen)
-    upper_right = Path.ellipse(upper_right_point, None, Unit(0), Unit(0), pen=pen)
-    bottom_left = Path.ellipse(bottom_left_point, None, Unit(0), Unit(0), pen=pen)
-    bottom_right = Path.ellipse(bottom_right_point, None, Unit(0), Unit(0), pen=pen)
-    zero = (Unit(0), Unit(0))
-    Path.straight_line(zero, upper_left, zero, upper_right, pen=pen)
-    Path.straight_line(zero, upper_right, zero, bottom_right, pen=pen)
-    Path.straight_line(zero, bottom_right, zero, bottom_left, pen=pen)
-    Path.straight_line(zero, bottom_left, zero, upper_left, pen=pen)
-    return upper_left_point, upper_right_point, bottom_left_point, bottom_right_point, \
-        upper_left, upper_right, bottom_left, bottom_right, zero
-
-
 def sequence_reticles(piece_time, collection):
-    global reticles
     if len(collection) > 0:
         done = collection[0][1](collection[0][2], collection[0][0], piece_time)
         if done:
             collection.pop(0)
 
 
+def circle(pos, onset_time, piece_time):
+    if piece_time > onset_time:
+        x, y = pos
+        id = get_id()
+        reticles[id] = CircleReticle((x, y), ULP, URP, BLP, BRP, id, pen=ret_pen, velocity=velo)
+        reticles[id].set_drum_locations(drums)
+        return True
+    else:
+        return False
+
+
+def line(direction, onset_time, piece_time):
+    global reticles
+    if piece_time > onset_time:
+        id = get_id()
+        reticles[id] = LineReticle(ULP, URP, BLP, BRP, direction, id, ret_pen, velocity=velo)
+        reticles[id].set_drum_locations(drums)
+        return True
+    else:
+        return False
+
+
+def radar(direction, onset_time, piece_time):
+    if piece_time > onset_time:
+        id = get_id()
+        reticles[id] = RadarReticle(ULP, URP, BLP, BRP, direction, id, ret_pen)
+        reticles[id].set_drum_locations(drums)
+        return True
+    else:
+        return False
+
+
+def set_color(color, onset_time, piece_time):
+    global ret_pen
+    if piece_time > onset_time:
+        match color:
+            case "black":
+                ret_pen = Pen("ffffff", thickness=ret_pen.__getattribute__("thickness"),
+                              pattern=ret_pen.__getattribute__("pattern"))
+            case "red":
+                ret_pen = Pen("ff0000", thickness=ret_pen.__getattribute__("thickness"),
+                              pattern=ret_pen.__getattribute__("pattern"))
+            case "green":
+                ret_pen = Pen("00ff00", thickness=ret_pen.__getattribute__("thickness"),
+                              pattern=ret_pen.__getattribute__("pattern"))
+            case "blue":
+                ret_pen = Pen("0000ff", thickness=ret_pen.__getattribute__("thickness"),
+                              pattern=ret_pen.__getattribute__("pattern"))
+        return True
+    else:
+        return False
+
+
+def set_pattern(pattern, onset_time, piece_time):
+    global ret_pen
+    if piece_time > onset_time:
+        match pattern:
+            case "SOLID":
+                ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=ret_pen.__getattribute__("thickness"),
+                              pattern=PenPattern.SOLID)
+            case "DOT":
+                ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=ret_pen.__getattribute__("thickness"),
+                              pattern=PenPattern.DOT)
+            case "DASH":
+                ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=ret_pen.__getattribute__("thickness"),
+                              pattern=PenPattern.DASH)
+        return True
+    else:
+        return False
+
+
+def set_velo(velocity, onset_time, piece_time):
+    global velo
+    if piece_time > onset_time:
+        velo = velocity
+        return True
+    else:
+        return False
+
+
 def make_sequencable_collection():
-    def circle(pos, onset_time, piece_time):
-        if piece_time > onset_time:
-            x, y = pos
-            id = get_id()
-            reticles[id] = CircleReticle((x, y), ULP, URP, BLP, BRP, id, pen=ret_pen, velocity=velo)
-            reticles[id].set_drum_locations(drums)
-            return True
-        else:
-            return False
-
-    def line(direction, onset_time, piece_time):
-        if piece_time > onset_time:
-            id = get_id()
-            reticles[id] = LineReticle(ULP, URP, BLP, BRP, direction, id, ret_pen, velocity=velo)
-            reticles[id].set_drum_locations(drums)
-            return True
-        else:
-            return False
-
-    def radar(direction, onset_time, piece_time):
-        if piece_time > onset_time:
-            id = get_id()
-            reticles[id] = RadarReticle(ULP, URP, BLP, BRP, direction, id, ret_pen)
-            reticles[id].set_drum_locations(drums)
-            return True
-        else:
-            return False
-
-    def set_color(color, onset_time, piece_time):
-        global ret_pen
-        if piece_time > onset_time:
-            match color:
-                case "black":
-                    ret_pen = Pen("ffffff", thickness=ret_pen.__getattribute__("thickness"),
-                                  pattern=ret_pen.__getattribute__("pattern"))
-                case "red":
-                    ret_pen = Pen("ff0000", thickness=ret_pen.__getattribute__("thickness"),
-                                  pattern=ret_pen.__getattribute__("pattern"))
-                case "green":
-                    ret_pen = Pen("00ff00", thickness=ret_pen.__getattribute__("thickness"),
-                                  pattern=ret_pen.__getattribute__("pattern"))
-                case "blue":
-                    ret_pen = Pen("0000ff", thickness=ret_pen.__getattribute__("thickness"),
-                                  pattern=ret_pen.__getattribute__("pattern"))
-            return True
-        else:
-            return False
-
-    def set_pattern(pattern, onset_time, piece_time):
-        global ret_pen
-        if piece_time > onset_time:
-            match pattern:
-                case "SOLID":
-                    ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=ret_pen.__getattribute__("thickness"),
-                                  pattern=PenPattern.SOLID)
-                case "DOT":
-                    ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=ret_pen.__getattribute__("thickness"),
-                                  pattern=PenPattern.DOT)
-                case "DASH":
-                    ret_pen = Pen(ret_pen.__getattribute__("color"), thickness=ret_pen.__getattribute__("thickness"),
-                                  pattern=PenPattern.DASH)
-            return True
-        else:
-            return False
-
-    def set_velo(velocity, onset_time, piece_time):
-        global velo
-        if piece_time > onset_time:
-            velo = velocity
-            return True
-        else:
-            return False
-
     collection = []
     for i in range(10):
-        collection.append((3*i, line, "right"))
+        collection.append((3 * i, line, "right"))
     for i in range(10):
-        collection.append((2.75*i+30, line, "down"))
+        collection.append((2.75 * i + 30, line, "down"))
     for i in range(5):
-        collection.append((2.5*i+57.5, line, "left"))
+        collection.append((2.5 * i + 57.5, line, "left"))
     for i in range(4):
-        collection.append((20*i - 0.1, set_velo, 80+10*i))
+        collection.append((20 * i - 0.1, set_velo, 80 + 10 * i))
     # collection.append((1, circle, (Unit(200), Unit(300))))
     # collection.append((2, line, "left"))
     # collection.append((1.75, set_color, "blue"))
@@ -858,28 +862,16 @@ def make_sequencable_collection():
 
 
 if __name__ == '__main__':
-    neoscore.setup()
-    screen_width = int(1920/2)
-    screen_height = int(1080/2)
-    hud_height = 160
     scroll_time = 8
     my_sequence = make_sequencable_collection()
 
-    neoscore.set_background_brush("#000000")
-    count = 0
     start_time = time.time()
 
     pen = Pen("000000", thickness=Unit(2))
-    table_pen = Pen("ffffff", thickness=Unit(2))
-    ret_pen = Pen("ffffff", thickness=Unit(4), pattern=PenPattern.SOLID)
-    ULP, URP, BLP, BRP, UL, UR, BL, BR, Zero = initialize()
     top_layer = []
-    reticles = {}
-    drums = {}
-    scrollers = {}
-    velo = 80
-    w = screen_width/13
-    h = (screen_height - 160)/13
+    test_list = []
+    w = screen_width / 13
+    h = (screen_height - 160) / 13
     drums[0] = Drum((Unit(1 * w), Unit(1 * h + 160)), 0)
     drums[1] = Drum((Unit(2 * w), Unit(5 * h + 160)), 1)
     drums[2] = Drum((Unit(3 * w), Unit(9 * h + 160)), 2)
