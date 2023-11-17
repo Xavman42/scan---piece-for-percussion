@@ -19,11 +19,11 @@ from neoscore.core.text import Text
 from neoscore.core.units import Unit
 
 from config import ret_pen, count, screen_width, screen_height, hud_height, ULP, URP, BLP, BRP, UL, UR, BL, BR, velo, \
-    scrollers, reticles, drums
+    scrollers, reticles, drums, scroll_time, num_reflections, piece_time, data_file
 
 
 class CircleReticle:
-    def __init__(self, origin, ul, ur, bl, br, id, order=1, pen=None, velocity=200):
+    def __init__(self, origin, ul, ur, bl, br, id, order=num_reflections, pen=None, velocity=200):
         self.origin = origin
         self.id = id
         self.init_time = time.time()
@@ -377,9 +377,7 @@ class LineReticle:
                                                      self.pen.__getattribute__("color"))
 
     def set_drum_locations(self, drums_array):
-        print("function here")
         self.drum_positions = []
-        print(self.drum_positions)
         for i in drums_array:
             self.drum_positions.append((drums_array[i].x.base_value, drums_array[i].y.base_value,
                                         drums_array[i].drum_num, drums_array[i].reveal))
@@ -559,6 +557,11 @@ class Scroller:
                 self.dynamic = "dynamicPiano"
                 self.brush = brush
                 self.note_head = "noteheadLargeArrowDownBlack"
+        with open(data_file, 'a') as df:
+            to_write = "drum_num: " + str(self.drum_num) + " atk_time: " + str(piece_time+scroll_time) + \
+                        " pen_pattern: " + str(ret_pattern) + " dynamic: " + str(self.dynamic) + \
+                        " id: " + str(self.id) + "\n"
+            df.write(to_write)
 
     def get_staff_pos(self):
         match self.drum_num:
@@ -640,9 +643,9 @@ def redraw_top_layer(top_layer_list, ulp, urp, brp, blp, width):
 
 
 def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
-    global reticles, top_layer
+    global reticles, top_layer, piece_time
     piece_time = global_time - start_time
-    sequence_reticles(piece_time, my_sequence)
+    # sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
         trash.append(reticles[i].animate())
@@ -757,44 +760,44 @@ def mouse_handler(event):
 
 def sequence_reticles(piece_time, collection):
     if len(collection) > 0:
-        done = collection[0][1](collection[0][2], collection[0][0], piece_time)
+        done = collection[0][1](collection[0][2], collection[0][0], piece_time, collection[0][3])
         if done:
             collection.pop(0)
 
 
-def circle(pos, onset_time, piece_time):
+def circle(pos, onset_time, piece_time, drum_dict):
     if piece_time > onset_time:
         x, y = pos
         id = get_id()
         reticles[id] = CircleReticle((x, y), ULP, URP, BLP, BRP, id, pen=ret_pen, velocity=velo)
-        reticles[id].set_drum_locations(drums)
+        reticles[id].set_drum_locations(drum_dict)
         return True
     else:
         return False
 
 
-def line(direction, onset_time, piece_time):
+def line(direction, onset_time, piece_time, drum_dict):
     global reticles
     if piece_time > onset_time:
         id = get_id()
         reticles[id] = LineReticle(ULP, URP, BLP, BRP, direction, id, ret_pen, velocity=velo)
-        reticles[id].set_drum_locations(drums)
+        reticles[id].set_drum_locations(drum_dict)
         return True
     else:
         return False
 
 
-def radar(direction, onset_time, piece_time):
+def radar(direction, onset_time, piece_time, drum_dict):
     if piece_time > onset_time:
         id = get_id()
         reticles[id] = RadarReticle(ULP, URP, BLP, BRP, direction, id, ret_pen)
-        reticles[id].set_drum_locations(drums)
+        reticles[id].set_drum_locations(drum_dict)
         return True
     else:
         return False
 
 
-def set_color(color, onset_time, piece_time):
+def set_color(color, onset_time, piece_time, null=None):
     global ret_pen
     if piece_time > onset_time:
         match color:
@@ -815,7 +818,7 @@ def set_color(color, onset_time, piece_time):
         return False
 
 
-def set_pattern(pattern, onset_time, piece_time):
+def set_pattern(pattern, onset_time, piece_time, null=None):
     global ret_pen
     if piece_time > onset_time:
         match pattern:
@@ -833,7 +836,7 @@ def set_pattern(pattern, onset_time, piece_time):
         return False
 
 
-def set_velo(velocity, onset_time, piece_time):
+def set_velo(velocity, onset_time, piece_time, null=None):
     global velo
     if piece_time > onset_time:
         velo = velocity
@@ -845,25 +848,26 @@ def set_velo(velocity, onset_time, piece_time):
 def make_sequencable_collection():
     collection = []
     for i in range(10):
-        collection.append((3 * i, line, "right"))
+        collection.append((3 * i, line, "right", drums))
     for i in range(10):
-        collection.append((2.75 * i + 30, line, "down"))
+        collection.append((2.75 * i + 30, line, "down", drums))
     for i in range(5):
-        collection.append((2.5 * i + 57.5, line, "left"))
+        collection.append((2.5 * i + 57.5, line, "left", drums))
     for i in range(4):
-        collection.append((20 * i - 0.1, set_velo, 80 + 10 * i))
-    # collection.append((1, circle, (Unit(200), Unit(300))))
-    # collection.append((2, line, "left"))
-    # collection.append((1.75, set_color, "blue"))
-    # collection.append((1.750001, set_pattern, "DOT"))
-    # collection.append((1.5, radar, "ccw"))
+        collection.append((20 * i - 0.1, set_velo, 80 + 10 * i, drums))
+    collection.append((1, circle, (Unit(200), Unit(300)), drums))
+    collection.append((2, line, "left", drums))
+    collection.append((1.75, set_color, "blue", drums))
+    collection.append((1.750001, set_pattern, "DOT", drums))
+    collection.append((1.5, radar, "ccw", drums))
     collection.sort()
     return collection
 
 
 if __name__ == '__main__':
-    scroll_time = 8
     my_sequence = make_sequencable_collection()
+    data_file = "interactive.data"
+    open(data_file, 'w').close()
 
     start_time = time.time()
 

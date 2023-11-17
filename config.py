@@ -4,8 +4,8 @@ from neoscore.core.pen import Pen
 from neoscore.core.pen_pattern import PenPattern
 from neoscore.core.units import Unit
 
-screen_width = int(1920 / 2)
-screen_height = int(1080 / 2)
+screen_width = int(1920/2)
+screen_height = int(1080/2)
 hud_height = 100
 ret_pen = Pen("ffffff", thickness=Unit(4), pattern=PenPattern.SOLID)
 count = 0
@@ -13,6 +13,10 @@ velo = 80
 scrollers = {}
 reticles = {}
 drums = {}
+scroll_time = 8
+num_reflections = 1
+piece_time = 0
+data_file = "Movement_1.data"
 
 neoscore.setup()
 neoscore.set_background_brush("#000000")

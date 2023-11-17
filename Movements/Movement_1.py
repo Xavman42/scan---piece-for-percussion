@@ -4,10 +4,11 @@ from typing import Optional
 from neoscore.core import neoscore
 from neoscore.core.units import Unit
 
-from main import Drum, line, set_velo, cleanup, redraw_top_layer, sequence_reticles
+from main import Drum, line, set_velo, cleanup, redraw_top_layer, sequence_reticles, circle, set_color, set_pattern, \
+    radar
 
 from config import ret_pen, count, screen_width, screen_height, hud_height, ULP, URP, BLP, BRP, UL, UR, BL, BR, velo, \
-    scrollers, reticles, drums
+    scrollers, reticles, drums, data_file
 
 
 def make_drums():
@@ -32,18 +33,18 @@ def make_drums():
 def make_sequence():
     collection = []
     for i in range(10):
-        collection.append((3 * i, line, "right"))
+        collection.append((3 * i, line, "right", drums))
     for i in range(10):
-        collection.append((2.75 * i + 30, line, "down"))
+        collection.append((2.75 * i + 30, line, "down", drums))
     for i in range(5):
-        collection.append((2.5 * i + 57.5, line, "left"))
+        collection.append((2.5 * i + 57.5, line, "left", drums))
     for i in range(4):
-        collection.append((20 * i - 0.1, set_velo, 80 + 10 * i))
-    # collection.append((1, circle, (Unit(200), Unit(300))))
-    # collection.append((2, line, "left"))
-    # collection.append((1.75, set_color, "blue"))
-    # collection.append((1.750001, set_pattern, "DOT"))
-    # collection.append((1.5, radar, "ccw"))
+        collection.append((20 * i - 0.1, set_velo, 80 + 10 * i, drums))
+    collection.append((1, circle, (Unit(200), Unit(300)), drums))
+    collection.append((2, line, "left", drums))
+    collection.append((1.75, set_color, "blue", drums))
+    collection.append((1.750001, set_pattern, "DOT", drums))
+    collection.append((1.5, radar, "ccw", drums))
     collection.sort()
     return collection
 
@@ -51,7 +52,7 @@ def make_sequence():
 def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
     global reticles, top_layer
     piece_time = global_time - start_time
-    # sequence_reticles(piece_time, my_sequence)
+    sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
         trash.append(reticles[i].animate())
@@ -66,14 +67,14 @@ def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
 
 
 if __name__ == '__main__':
-    scroll_time = 8
     top_layer = []
     test_list = []
+    drums = make_drums()
     my_sequence = make_sequence()
 
     start_time = time.time()
 
-    drums = make_drums()
+    open(data_file, 'w').close()
 
     neoscore.set_viewport_center_pos((Unit(screen_width / 2), Unit(screen_height / 2)))
     neoscore.show(refresh_func, display_page_geometry=False, auto_viewport_interaction_enabled=False,
