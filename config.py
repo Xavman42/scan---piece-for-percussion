@@ -20,8 +20,8 @@ scroll_time = 8
 num_reflections = 1
 piece_time = 0
 data_file = "Movement_1.data"
-fps = 20
-piece_duration = 4
+fps = 60
+piece_duration = 10
 video_name = "Movement_1.avi"
 
 neoscore.setup()

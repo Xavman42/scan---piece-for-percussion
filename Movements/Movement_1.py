@@ -63,14 +63,14 @@ def animate_all(global_time):
     sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
-        trash.append(reticles[i].animate())
+        trash.append(reticles[i].animate(piece_time))
     cleanup("reticles", trash)
     for i in drums:
         drums[i].animate()
     top_layer = redraw_top_layer(top_layer, ULP, URP, BRP, BLP, screen_width)
     trash = []
     for i in scrollers:
-        trash.append(scrollers[i].animate())
+        trash.append(scrollers[i].animate(piece_time))
     cleanup("scrollers", trash)
 
 
