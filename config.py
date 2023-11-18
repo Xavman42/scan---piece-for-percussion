@@ -1,3 +1,5 @@
+import time
+
 from neoscore.core import neoscore
 from neoscore.core.path import Path
 from neoscore.core.pen import Pen
@@ -13,10 +15,14 @@ velo = 80
 scrollers = {}
 reticles = {}
 drums = {}
+top_layer = []
 scroll_time = 8
 num_reflections = 1
 piece_time = 0
 data_file = "Movement_1.data"
+fps = 20
+piece_duration = 4
+video_name = "Movement_1.avi"
 
 neoscore.setup()
 neoscore.set_background_brush("#000000")
@@ -33,5 +39,7 @@ Path.straight_line(zero, UL, zero, UR, pen=Pen.no_pen())
 Path.straight_line(zero, UR, zero, BL, pen=Pen.no_pen())
 Path.straight_line(zero, BR, zero, BL, pen=Pen.no_pen())
 Path.straight_line(zero, BL, zero, UL, pen=Pen.no_pen())
+
+start_time = time.time()
 
 print("config complete")

@@ -1,14 +1,19 @@
+import io
 import time
 from typing import Optional
 
+import imageio
+import numpy as np
+import PIL.Image as Image
 from neoscore.core import neoscore
+from neoscore.core.rect import Rect
 from neoscore.core.units import Unit
 
 from main import Drum, line, set_velo, cleanup, redraw_top_layer, sequence_reticles, circle, set_color, set_pattern, \
     radar
 
 from config import ret_pen, count, screen_width, screen_height, hud_height, ULP, URP, BLP, BRP, UL, UR, BL, BR, velo, \
-    scrollers, reticles, drums, data_file
+    scrollers, reticles, drums, data_file, video_name, fps, start_time, top_layer, piece_duration
 
 
 def make_drums():
@@ -49,9 +54,12 @@ def make_sequence():
     return collection
 
 
-def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
-    global reticles, top_layer
-    piece_time = global_time - start_time
+def animate_all(global_time):
+    global reticles, top_layer, piece_time, top_layer
+    if render_to_file:
+        piece_time = global_time
+    else:
+        piece_time = global_time - start_time
     sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
@@ -66,16 +74,31 @@ def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
     cleanup("scrollers", trash)
 
 
+def render_func():
+    b_array = bytearray()
+    writer = imageio.get_writer(video_name, mode="I", fps=fps)
+    for i in range(fps * piece_duration):
+        print(round(i/fps, 2), "/", piece_duration, "seconds rendered")
+        animate_all(i/fps)
+        neoscore.render_image(Rect(Unit(0), Unit(0), Unit(screen_width), Unit(screen_height)), b_array, quality=100)
+        image = np.array(Image.open(io.BytesIO(b_array)))  # pip install imageio[ffmpeg]
+        writer.append_data(image)
+    writer.close()
+
+
+def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
+    animate_all(global_time)
+
+
 if __name__ == '__main__':
-    top_layer = []
-    test_list = []
+    render_to_file = True
     drums = make_drums()
     my_sequence = make_sequence()
+    open(data_file, 'w').close()  # This wipes the file
 
-    start_time = time.time()
-
-    open(data_file, 'w').close()
-
-    neoscore.set_viewport_center_pos((Unit(screen_width / 2), Unit(screen_height / 2)))
-    neoscore.show(refresh_func, display_page_geometry=False, auto_viewport_interaction_enabled=False,
-                  min_window_size=(screen_width, screen_height), max_window_size=(screen_width, screen_height))
+    if render_to_file:
+        render_func()
+    else:
+        neoscore.set_viewport_center_pos((Unit(screen_width / 2), Unit(screen_height / 2)))
+        neoscore.show(refresh_func, display_page_geometry=False, auto_viewport_interaction_enabled=False,
+                      min_window_size=(screen_width, screen_height), max_window_size=(screen_width, screen_height))
