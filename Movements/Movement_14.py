@@ -12,8 +12,7 @@ from neoscore.core.units import Unit
 from main import Drum, line, set_velo, cleanup, redraw_top_layer, sequence_reticles, circle, set_color, set_pattern, \
     radar
 
-from config import ret_pen, count, screen_width, screen_height, hud_height, ULP, URP, BLP, BRP, UL, UR, BL, BR, velo, \
-    scrollers, reticles, drums, data_file, video_name, fps, start_time, top_layer, piece_duration
+from config import *
 
 
 def make_drums():

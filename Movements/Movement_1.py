@@ -12,8 +12,7 @@ from neoscore.core.units import Unit
 from main import Drum, line, set_velo, cleanup, redraw_top_layer, sequence_reticles, circle, set_color, set_pattern, \
     radar
 
-from config import ret_pen, count, screen_width, screen_height, hud_height, ULP, URP, BLP, BRP, UL, UR, BL, BR, velo, \
-    scrollers, reticles, drums, data_file, video_name, fps, start_time, top_layer, piece_duration
+from config import *
 
 
 def make_drums():
@@ -114,7 +113,7 @@ def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
 
 
 if __name__ == '__main__':
-    render_to_file = True
+    render_to_file = False
     drums = make_drums()
     my_sequence = make_sequence()
     open(data_file, 'w').close()  # This wipes the file

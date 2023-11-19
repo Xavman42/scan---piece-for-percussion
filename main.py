@@ -18,8 +18,7 @@ from neoscore.core.pen_pattern import PenPattern
 from neoscore.core.text import Text
 from neoscore.core.units import Unit
 
-from config import ret_pen, count, screen_width, screen_height, hud_height, ULP, URP, BLP, BRP, UL, UR, BL, BR, velo, \
-    scrollers, reticles, drums, scroll_time, num_reflections, piece_time, data_file, start_time
+from config import *
 
 
 class CircleReticle:
@@ -294,6 +293,11 @@ class LineReticle:
                 self.prev_pos = hud_height
             case "up":
                 self.prev_pos = self.box_height
+        with open(data_file, 'a') as df:
+            to_write = "reticle, " + "line" + ", atk_time, " + str(now+scroll_time) + \
+                        ", pen_pattern, " + str(pen.pattern) + ", dynamic, " + str(pen.color) + \
+                        ", id, " + str(self.id) + "\n"
+            df.write(to_write)
 
     def animate(self, now):
         trash2 = None
@@ -408,6 +412,11 @@ class RadarReticle:
         self.angles = []
         self.direction = direction
         self.prev_angle = 0
+        with open(data_file, 'a') as df:
+            to_write = "reticle, " + "radar" + ", atk_time, " + str(now+scroll_time) + \
+                        ", pen_pattern, " + str(pen.pattern) + ", dynamic, " + str(pen.color) + \
+                        ", id, " + str(self.id) + "\n"
+            df.write(to_write)
 
     def animate(self, now):
         trash2 = None
@@ -563,7 +572,7 @@ class Scroller:
                 self.brush = brush
                 self.note_head = "noteheadLargeArrowDownBlack"
         with open(data_file, 'a') as df:
-            to_write = "drum_num, " + str(self.drum_num) + ", atk_time, " + str(piece_time+scroll_time) + \
+            to_write = "drum_num, " + str(self.drum_num) + ", atk_time, " + str(now+scroll_time) + \
                         ", pen_pattern, " + str(ret_pattern) + ", dynamic, " + str(self.dynamic) + \
                         ", id, " + str(self.id) + "\n"
             df.write(to_write)
@@ -877,9 +886,6 @@ if __name__ == '__main__':
     data_file = "interactive.data"
     open(data_file, 'w').close()
 
-    pen = Pen("000000", thickness=Unit(2))
-    top_layer = []
-    test_list = []
     w = screen_width / 13
     h = (screen_height - 160) / 13
     drums[0] = Drum((Unit(1 * w), Unit(1 * h + 160)), 0)
