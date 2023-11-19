@@ -20,37 +20,38 @@ def make_drums():
     w = screen_width / 13
     h = (screen_height - hud_height) / 13
     dict = {}
-    # dict[0] = Drum((Unit(1 * w), Unit(1 * h + 160)), 0)
-    dict[1] = Drum((Unit(2 * w), Unit(5 * h + 160)), 1)
-    dict[2] = Drum((Unit(3 * w), Unit(9 * h + 160)), 2)
-    # dict[3] = Drum((Unit(4 * w), Unit(2 * h + 160)), 3)
-    # dict[4] = Drum((Unit(5 * w), Unit(6 * h + 160)), 4)
-    # dict[5] = Drum((Unit(6 * w), Unit(10 * h + 160)), 5)
-    # dict[6] = Drum((Unit(9 * w), Unit(3 * h + 160)), 6)
-    # dict[7] = Drum((Unit(8 * w), Unit(7 * h + 160)), 7)
-    # dict[8] = Drum((Unit(7 * w), Unit(11 * h + 160)), 8)
-    # dict[9] = Drum((Unit(12 * w), Unit(4 * h + 160)), 9)
-    # dict[10] = Drum((Unit(11 * w), Unit(8 * h + 160)), 10)
-    # dict[11] = Drum((Unit(10 * w), Unit(12 * h + 160)), 11)
+    # dict[0] = Drum((Unit(1 * w), Unit(1 * h + hud_height)), 0)
+    dict[1] = Drum((Unit(2 * w), Unit(5 * h + hud_height)), 1)
+    dict[2] = Drum((Unit(3 * w), Unit(9 * h + hud_height)), 2)
+    # dict[3] = Drum((Unit(4 * w), Unit(2 * h + hud_height)), 3)
+    dict[4] = Drum((Unit(5 * w), Unit(6 * h + hud_height)), 4)
+    # dict[5] = Drum((Unit(6 * w), Unit(10 * h + hud_height)), 5)
+    # dict[6] = Drum((Unit(9 * w), Unit(3 * h + hud_height)), 6)
+    # dict[7] = Drum((Unit(8 * w), Unit(7 * h + hud_height)), 7)
+    dict[8] = Drum((Unit(7 * w), Unit(11 * h + hud_height)), 8)
+    # dict[9] = Drum((Unit(12 * w), Unit(4 * h + hud_height)), 9)
+    dict[10] = Drum((Unit(11 * w), Unit(8 * h + hud_height)), 10)
+    dict[11] = Drum((Unit(10 * w), Unit(12 * h + hud_height)), 11)
     return dict
 
 
 def make_sequence():
     collection = []
-    for i in range(20):
-        collection.append((5 * i - 0.1, set_color, "ff3878", drums))
-        collection.append((5 * i, line, "left", drums))
-    for i in range(20):
-        collection.append((5 * i + 1 - 0.1, set_color, "f271c0", drums))
-        collection.append((5 * i + 1, line, "up", drums))
-    for i in range(20):
-        collection.append((5 * i + 2 - 0.1, set_color, "cf9fe9", drums))
-        collection.append((5 * i + 2, line, "right", drums))
-    for i in range(20):
-        collection.append((5 * i + 3 - 0.1, set_color, "bbc1f2", drums))
-        collection.append((5 * i + 3, line, "down", drums))
-    for i in range(20):
-        collection.append((4 * i + 0.1, set_velo, 80 + 5 * i, drums))
+    collection.append((-0.8, set_velo, 66, drums))
+    collection.append((-0.9, set_color, "f41218", drums))
+    collection.append((0, circle, (Unit(screen_width/2), Unit(screen_height/2)), drums))
+    collection.append((40.1, set_color, "ff3878", drums))
+    collection.append((46, radar, "ccw", drums))
+    collection.append((49, radar, "cw", drums))
+    collection.append((52, radar, "ccw", drums))
+    collection.append((55, radar, "cw", drums))
+    collection.append((-0.8, set_velo, 30, drums))
+    collection.append((55.1, set_color, "f271c0", drums))
+    collection.append((55.01, set_pattern, "DOT", drums))
+    collection.append((60, circle, (Unit(screen_width / 5), Unit(4 * screen_height / 6)), drums))
+    collection.append((60.1, set_color, "bbc1f2", drums))
+    collection.append((60.01, set_pattern, "DASH", drums))
+    collection.append((64, circle, (Unit(4 * screen_width / 5), Unit(5 * screen_height / 6)), drums))
 
     # for i in range(25):
     #     collection.append((3 * i, line, "left", drums))
@@ -114,7 +115,7 @@ def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
 
 
 if __name__ == '__main__':
-    render_to_file = True
+    render_to_file = False
     drums = make_drums()
     my_sequence = make_sequence()
     open(data_file, 'w').close()  # This wipes the file

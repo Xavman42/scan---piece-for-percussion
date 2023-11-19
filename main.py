@@ -45,11 +45,16 @@ class CircleReticle:
         self.tick = 1
         self.velocity = velocity
         self.distances = []
+        with open(data_file, 'a') as df:
+            to_write = "reticle, " + "circle" + ", atk_time, " + str(now+scroll_time) + \
+                        ", pen_pattern, " + str(pen.pattern) + ", dynamic, " + str(pen.color) + \
+                        ", id, " + str(self.id) + "\n"
+            df.write(to_write)
 
     def animate(self, now):
         trash2 = None
         trash1 = self._animate_trace(now)
-        if (time.time() - self.init_time) > scroll_time:
+        if (now - self.init_time) > scroll_time:
             trash2 = self._animate_actual(now)
         return trash1, trash2
 
@@ -250,7 +255,7 @@ class CircleReticle:
     def _check_for_contact(self, radius, distances, now):
         global scrollers
         for idx, i in enumerate(distances):
-            if self.drum_positions[idx % 12][3]:
+            if self.drum_positions[idx % len(self.drum_positions)][3]:
                 if self.prev_rad / 2 < i[0] < radius / 2:
                     id = get_id()
                     scrollers[id] = Scroller(i[1], scroll_time, id, str(self.pen.__getattribute__("pattern")),
@@ -286,7 +291,7 @@ class LineReticle:
             case "left":
                 self.prev_pos = self.box_width
             case "down":
-                self.prev_pos = 0
+                self.prev_pos = hud_height
             case "up":
                 self.prev_pos = self.box_height
 
@@ -304,7 +309,7 @@ class LineReticle:
             case "left":
                 pos = self.box_width - (now - self.init_time) * self.velocity
             case "down":
-                pos = (now - self.init_time) * self.velocity
+                pos = (now - self.init_time) * self.velocity + hud_height
             case "up":
                 pos = self.box_height - (now - self.init_time) * self.velocity + hud_height
         for i in self.objects:
@@ -558,9 +563,9 @@ class Scroller:
                 self.brush = brush
                 self.note_head = "noteheadLargeArrowDownBlack"
         with open(data_file, 'a') as df:
-            to_write = "drum_num: " + str(self.drum_num) + " atk_time: " + str(piece_time+scroll_time) + \
-                        " pen_pattern: " + str(ret_pattern) + " dynamic: " + str(self.dynamic) + \
-                        " id: " + str(self.id) + "\n"
+            to_write = "drum_num, " + str(self.drum_num) + ", atk_time, " + str(piece_time+scroll_time) + \
+                        ", pen_pattern, " + str(ret_pattern) + ", dynamic, " + str(self.dynamic) + \
+                        ", id, " + str(self.id) + "\n"
             df.write(to_write)
 
     def get_staff_pos(self):
@@ -812,6 +817,9 @@ def set_color(color, onset_time, piece_time, null=None):
                               pattern=ret_pen.__getattribute__("pattern"))
             case "blue":
                 ret_pen = Pen("0000ff", thickness=ret_pen.__getattribute__("thickness"),
+                              pattern=ret_pen.__getattribute__("pattern"))
+            case _:
+                ret_pen = Pen(color, thickness=ret_pen.__getattribute__("thickness"),
                               pattern=ret_pen.__getattribute__("pattern"))
         return True
     else:

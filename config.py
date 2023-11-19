@@ -17,12 +17,12 @@ reticles = {}
 drums = {}
 top_layer = []
 scroll_time = 8
-num_reflections = 1
+num_reflections = 2
 piece_time = 0
-data_file = "Movement_1.data"
+data_file = "Movement_14.data"
 fps = 60
-piece_duration = 10
-video_name = "Movement_1.avi"
+piece_duration = 130
+video_name = "Movement_14.mp4"
 
 neoscore.setup()
 neoscore.set_background_brush("#000000")
