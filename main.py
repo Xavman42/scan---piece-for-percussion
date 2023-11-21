@@ -52,10 +52,10 @@ class CircleReticle:
 
     def animate(self, now):
         trash2 = None
-        trash1 = self._animate_trace(now)
+        trash1, drum_hit = self._animate_trace(now)
         if (now - self.init_time) > scroll_time:
             trash2 = self._animate_actual(now)
-        return trash1, trash2
+        return trash1, trash2, drum_hit
 
     def _animate_trace(self, now):
         radius = (now - self.init_time) * self.velocity + 1
@@ -152,10 +152,11 @@ class CircleReticle:
             if self.tick == 1:
                 self.distances = self._calculate_reticle_to_drums()
                 self.tick = 2
-            self._check_for_contact(radius, self.distances, now)
+            drum_hit = self._check_for_contact(radius, self.distances, now)
+            self.prev_rad = radius
+            return None, drum_hit
         else:
             return self.id
-        self.prev_rad = radius
 
     def _animate_actual(self, now):
         radius = (now - self.init_time - scroll_time) * self.velocity + 1
@@ -259,6 +260,7 @@ class CircleReticle:
                     id = get_id()
                     scrollers[id] = Scroller(i[1], scroll_time, id, str(self.pen.__getattribute__("pattern")),
                                              self.pen.__getattribute__("color"), now)
+                    return self.drum_positions[idx % len(self.drum_positions)][2]
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -301,10 +303,10 @@ class LineReticle:
 
     def animate(self, now):
         trash2 = None
-        trash1 = self._animate_trace(now)
+        trash1, drum_hit = self._animate_trace(now)
         if (now - self.init_time) > scroll_time:
             trash2 = self._animate_actual(now)
-        return trash1, trash2
+        return trash1, trash2, drum_hit
 
     def _animate_trace(self, now):
         match self.direction:
@@ -328,10 +330,11 @@ class LineReticle:
                 self.objects.append(Path.straight_line((Unit(0), Unit(pos) + self.ul[1]), None,
                                                        (Unit(self.box_width), Unit(0)), None,
                                                        Brush.no_brush(), Pen.no_pen()))
-            self._check_for_contact(pos, now)
+            drum_hit = self._check_for_contact(pos, now)
+            self.prev_pos = pos
+            return None, drum_hit
         else:
-            return self.id
-        self.prev_pos = pos
+            return self.id, None
 
     def _animate_actual(self, now):
         match self.direction:
@@ -369,21 +372,25 @@ class LineReticle:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
                                                      self.pen.__getattribute__("color"), now=now)
+                            return i[2]
                     case "down":
                         if self.prev_pos < i[1] < pos:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
                                                      self.pen.__getattribute__("color"), now=now)
+                            return i[2]
                     case "left":
                         if self.prev_pos > i[0] > pos:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
                                                      self.pen.__getattribute__("color"), now=now)
+                            return i[2]
                     case "up":
                         if self.prev_pos > i[1] > pos:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
                                                      self.pen.__getattribute__("color"), now=now)
+                            return i[2]
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
@@ -420,10 +427,10 @@ class RadarReticle:
 
     def animate(self, now):
         trash2 = None
-        trash1 = self._animate_trace(now)
+        trash1, drum_hit = self._animate_trace(now)
         if (now - self.init_time) > scroll_time:
             trash2 = self._animate_actual(now)
-        return trash1, trash2
+        return trash1, trash2, drum_hit
 
     def _animate_trace(self, now):
         match self.direction:
@@ -442,12 +449,13 @@ class RadarReticle:
             if self.tick == 1:
                 self.angles = self._calculate_reticle_to_drums()
                 self.tick = 2
-            self._check_for_contact(angle, now)
+            drum_hit = self._check_for_contact(angle, now)
+            self.prev_angle = angle
+            return None, drum_hit
         elif abs(angle) < 4 * math.pi:
-            pass
+            self.prev_angle = angle
         else:
             return self.id
-        self.prev_angle = angle
 
     def _animate_actual(self, now):
         match self.direction:
@@ -488,11 +496,13 @@ class RadarReticle:
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
                                                      self.pen.__getattribute__("color"), now)
+                            return i[2]
                     case "ccw":
                         if self.prev_angle % (2 * math.pi) > self.angles[idx] > angle % (2 * math.pi):
                             id = get_id()
                             scrollers[id] = Scroller(i[2], scroll_time, id, str(self.pen.__getattribute__("pattern")),
                                                      self.pen.__getattribute__("color"), now)
+                            return i[2]
 
     def set_drum_locations(self, drums_array):
         self.drum_positions = []
