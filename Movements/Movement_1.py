@@ -52,8 +52,8 @@ def make_drums():
     h = (screen_height - hud_height) / 13
     dict = {}
     # dict[0] = Drum((Unit(1 * w), Unit(1 * h + 160)), 0)
-    dict[1] = Drum((Unit(2 * w), Unit(5 * h + 160)), 1)
-    dict[2] = Drum((Unit(3 * w), Unit(9 * h + 160)), 2)
+    dict[1] = Drum((Unit(2 * w), Unit(5 * h + hud_height)), 1)
+    dict[2] = Drum((Unit(3 * w), Unit(9 * h + hud_height)), 2)
     # dict[3] = Drum((Unit(4 * w), Unit(2 * h + 160)), 3)
     # dict[4] = Drum((Unit(5 * w), Unit(6 * h + 160)), 4)
     # dict[5] = Drum((Unit(6 * w), Unit(10 * h + 160)), 5)

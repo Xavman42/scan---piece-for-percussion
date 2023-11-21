@@ -1,5 +1,6 @@
 import io
 import math
+import random
 import time
 from typing import Optional
 
@@ -7,31 +8,92 @@ import imageio
 import numpy as np
 import PIL.Image as Image
 from neoscore.core import neoscore
+from neoscore.core.brush import Brush
 from neoscore.core.rect import Rect
 from neoscore.core.units import Unit
 from neoscore.core.image import Image as im
+from numpy import interp
 
 from main import Drum, line, set_velo, cleanup, redraw_top_layer, sequence_reticles, circle, set_color, set_pattern, \
-    radar
+    radar, get_id
 from config import *
+
+
+class HitAnimation:
+    def __init__(self, id, drum_num, now=0):
+        self.id = id
+        self.init_time = now
+        self.objects = []
+        self.drum_num = drum_num
+        self.anim_dur = 0.25
+        self.x = Unit(random.randint(0, screen_width))  # drums[self.drum_num].x
+        self.y = Unit(random.randint(hud_height, screen_height))  # drums[self.drum_num].y
+        self.rotation = random.randint(0, 359)
+
+    def animate(self, now):
+        trash = self._animate_actual(now)
+        return trash
+
+    def _animate_actual(self, now):
+        for i in self.objects:
+            i.remove()
+        self.objects = []
+        if type(self.drum_num) == int:
+            if scroll_time < now - self.init_time < scroll_time + self.anim_dur:
+                # opacity = hex(int(interp(now-self.init_time-scroll_time, [0, self.anim_dur], [255, 0])))[2:]
+                # color = "ffffff" + opacity
+                # if len(color) == 7:
+                #     color = color[:6] + str(0) + color[6:]
+                # self.objects.append(Path.ellipse_from_center((self.x, self.y),
+                #                                              None, Unit(50), Unit(50), Brush(color)))
+                opacity = interp(now - self.init_time - scroll_time, [0, self.anim_dur], [1.0, 0.0])
+                self.objects.append(im((self.x, self.y), None, "../Assets/star_sirius.png",
+                                       scale=0.15, rotation=self.rotation, opacity=opacity))
+            elif now - self.init_time < scroll_time:
+                pass
+            else:
+                return self.id
+
+
+class BackgroundAnimation:
+    def __init__(self, now=0):
+        self.init_time = now
+        self.objects = []
+        self.anim_dur = 100
+        self.x = Unit(random.randint(0, screen_width))  # drums[self.drum_num].x
+        self.y = Unit(random.randint(hud_height, screen_height))  # drums[self.drum_num].y
+        self.objects.append(im((Unit(0), Unit(0)), None, "../Assets/test_pic.png"))
+
+    def animate(self, now):
+        self._animate_actual(now)
+
+    def _animate_actual(self, now):
+        if now - self.init_time < self.anim_dur:
+            opacity = interp(now - self.init_time, [0, self.anim_dur], [0.0, 0.75])
+            for i in self.objects:
+                i.opacity = opacity
+        else:
+            opacity = interp(now - self.init_time, [self.anim_dur, self.anim_dur+10], [0.75, 0.0])
+            for i in self.objects:
+                i.opacity = opacity
 
 
 def make_drums():
     w = screen_width / 13
     h = (screen_height - hud_height) / 13
     dict = {}
-    # dict[0] = Drum((Unit(1 * w), Unit(1 * h + 160)), 0)
-    dict[1] = Drum((Unit(2 * w), Unit(5 * h + 160)), 1)
-    dict[2] = Drum((Unit(3 * w), Unit(9 * h + 160)), 2)
-    # dict[3] = Drum((Unit(4 * w), Unit(2 * h + 160)), 3)
-    # dict[4] = Drum((Unit(5 * w), Unit(6 * h + 160)), 4)
-    # dict[5] = Drum((Unit(6 * w), Unit(10 * h + 160)), 5)
-    # dict[6] = Drum((Unit(9 * w), Unit(3 * h + 160)), 6)
-    # dict[7] = Drum((Unit(8 * w), Unit(7 * h + 160)), 7)
-    # dict[8] = Drum((Unit(7 * w), Unit(11 * h + 160)), 8)
-    # dict[9] = Drum((Unit(12 * w), Unit(4 * h + 160)), 9)
-    # dict[10] = Drum((Unit(11 * w), Unit(8 * h + 160)), 10)
-    # dict[11] = Drum((Unit(10 * w), Unit(12 * h + 160)), 11)
+    dict[0] = Drum((Unit(1 * w), Unit(1 * h + hud_height)), 0)
+    dict[1] = Drum((Unit(2 * w), Unit(5 * h + hud_height)), 1)
+    dict[2] = Drum((Unit(3 * w), Unit(9 * h + hud_height)), 2)
+    dict[3] = Drum((Unit(4 * w), Unit(2 * h + hud_height)), 3)
+    dict[4] = Drum((Unit(5 * w), Unit(6 * h + hud_height)), 4)
+    dict[5] = Drum((Unit(6 * w), Unit(10 * h + hud_height)), 5)
+    dict[6] = Drum((Unit(9 * w), Unit(3 * h + hud_height)), 6)
+    dict[7] = Drum((Unit(8 * w), Unit(7 * h + hud_height)), 7)
+    dict[8] = Drum((Unit(7 * w), Unit(11 * h + hud_height)), 8)
+    dict[9] = Drum((Unit(12 * w), Unit(4 * h + hud_height)), 9)
+    dict[10] = Drum((Unit(11 * w), Unit(8 * h + hud_height)), 10)
+    dict[11] = Drum((Unit(10 * w), Unit(12 * h + hud_height)), 11)
     return dict
 
 
@@ -78,16 +140,27 @@ def make_sequence():
 
 def animate_all(global_time):
     global reticles, top_layer, piece_time, top_layer
-    my_image.opacity = abs(math.sin(global_time)) - 0.5
+    # my_image.opacity = 0  # abs(math.sin(global_time)) - 0.5
     if render_to_file:
         piece_time = global_time
     else:
         piece_time = global_time - start_time
     print(piece_time)
+    for i in background:
+        background[i].animate(piece_time)
     sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
         trash.append(reticles[i].animate(piece_time))
+        hit = trash[-1][2]
+        if type(hit) == int:
+            id = get_id()
+            hits[id] = HitAnimation(id, hit, piece_time)
+    cleanup("reticles", trash)
+    trash = []
+    for i in hits:
+        trash.append(hits[i].animate(piece_time))
+    cleanup_hits(trash)
     cleanup("reticles", trash)
     for i in drums:
         drums[i].animate(piece_time)
@@ -96,6 +169,12 @@ def animate_all(global_time):
     for i in scrollers:
         trash.append(scrollers[i].animate(piece_time))
     cleanup("scrollers", trash)
+
+
+def cleanup_hits(dict):
+    for i in dict:
+        if type(i) == int:
+            del hits[i]
 
 
 def render_func():
@@ -116,10 +195,12 @@ def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
 
 if __name__ == '__main__':
     render_to_file = False
+    hits = {}
+    background = {}
+    background[0] = BackgroundAnimation()
     drums = make_drums()
     my_sequence = make_sequence()
     open(data_file, 'w').close()  # This wipes the file
-    my_image = im((Unit(0), Unit(0)), None, "../Assets/test_pic.png")
     if render_to_file:
         render_func()
     else:
