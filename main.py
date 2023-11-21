@@ -512,9 +512,9 @@ class RadarReticle:
 
 
 class Drum:
-    def __init__(self, location, drum_num, reveal=True):
+    def __init__(self, location, drum_num, reveal=True, now=piece_time):
         self.loc = location
-        self.init_time = time.time()
+        self.init_time = now
         self.x = location[0]
         self.y = location[1]
         self.objects = []
@@ -529,8 +529,8 @@ class Drum:
             Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen))
         self.objects.append(Text(self.loc, None, str(drum_num), pen=self.pen))
 
-    def animate(self):
-        radius = (time.time() - self.init_time) * 30
+    def animate(self, now):
+        radius = (now - self.init_time) * 30
         for i in self.objects:
             i.remove()
         self.objects = []
@@ -545,8 +545,8 @@ class Drum:
             self.objects.append(Path.ellipse_from_center(self.loc, None, Unit(shrink_rad), Unit(shrink_rad),
                                                          brush=Brush("#e8fc03ff"), pen=self.pen))
 
-    def reset_animation(self):
-        self.init_time = time.time()
+    def reset_animation(self, now):
+        self.init_time = now
 
     def toggle(self):
         self.reveal = not self.reveal
@@ -555,7 +555,7 @@ class Drum:
             self.pen = Pen("ffffff", thickness=Unit(2))
         else:
             self.pen = Pen.no_pen()
-        self.reset_animation()
+        self.reset_animation(piece_time)
 
 
 class Scroller:
@@ -675,7 +675,7 @@ def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
         trash.append(reticles[i].animate(piece_time))
     cleanup("reticles", trash)
     for i in drums:
-        drums[i].animate()
+        drums[i].animate(piece_time)
     top_layer = redraw_top_layer(top_layer, ULP, URP, BRP, BLP, screen_width)
     trash = []
     for i in scrollers:

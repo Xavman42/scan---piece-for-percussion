@@ -90,7 +90,7 @@ def animate_all(global_time):
         trash.append(reticles[i].animate(piece_time))
     cleanup("reticles", trash)
     for i in drums:
-        drums[i].animate()
+        drums[i].animate(piece_time)
     top_layer = redraw_top_layer(top_layer, ULP, URP, BRP, BLP, screen_width)
     trash = []
     for i in scrollers:
