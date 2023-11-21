@@ -6,13 +6,45 @@ import imageio
 import numpy as np
 import PIL.Image as Image
 from neoscore.core import neoscore
+from neoscore.core.brush import Brush
 from neoscore.core.rect import Rect
 from neoscore.core.units import Unit
 
 from main import Drum, line, set_velo, cleanup, redraw_top_layer, sequence_reticles, circle, set_color, set_pattern, \
-    radar
+    radar, get_id
 
 from config import *
+from numpy import interp
+
+
+class HitAnimation:
+    def __init__(self, id, drum_num, now=0):
+        self.id = id
+        self.init_time = now
+        self.objects = []
+        self.drum_num = drum_num
+        self.anim_dur = 0.25
+
+    def animate(self, now):
+        trash = self._animate_actual(now)
+        return trash
+
+    def _animate_actual(self, now):
+        for i in self.objects:
+            i.remove()
+        self.objects = []
+        if type(self.drum_num) == int:
+            if scroll_time < now - self.init_time < scroll_time + self.anim_dur:
+                opacity = hex(int(interp(now-self.init_time-scroll_time, [0, self.anim_dur], [255, 0])))[2:]
+                color = "ffffff" + opacity
+                if len(color) == 7:
+                    color = color[:6] + str(0) + color[6:]
+                self.objects.append(Path.ellipse_from_center((drums[self.drum_num].x, drums[self.drum_num].y),
+                                                             None, Unit(50), Unit(50), Brush(color)))
+            elif now - self.init_time < scroll_time:
+                pass
+            else:
+                return self.id
 
 
 def make_drums():
@@ -81,12 +113,21 @@ def animate_all(global_time):
         piece_time = global_time
     else:
         piece_time = global_time - start_time
-    print(piece_time)
+    # print(piece_time)
     sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
         trash.append(reticles[i].animate(piece_time))
+        hit = trash[-1][2]
+        if type(hit) == int:
+            id = get_id()
+            hits[id] = HitAnimation(id, hit, piece_time)
     cleanup("reticles", trash)
+    trash = []
+    for i in hits:
+        trash.append(hits[i].animate(piece_time))
+    cleanup_hits(trash)
+    trash = []
     for i in drums:
         drums[i].animate(piece_time)
     top_layer = redraw_top_layer(top_layer, ULP, URP, BRP, BLP, screen_width)
@@ -94,6 +135,12 @@ def animate_all(global_time):
     for i in scrollers:
         trash.append(scrollers[i].animate(piece_time))
     cleanup("scrollers", trash)
+
+
+def cleanup_hits(dict):
+    for i in dict:
+        if type(i) == int:
+            del hits[i]
 
 
 def render_func():
@@ -116,6 +163,7 @@ if __name__ == '__main__':
     render_to_file = False
     drums = make_drums()
     my_sequence = make_sequence()
+    hits = {}
     open(data_file, 'w').close()  # This wipes the file
 
     if render_to_file:
