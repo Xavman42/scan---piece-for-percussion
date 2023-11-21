@@ -6,8 +6,8 @@ from neoscore.core.pen import Pen
 from neoscore.core.pen_pattern import PenPattern
 from neoscore.core.units import Unit
 
-screen_width = int(1920/2)
-screen_height = int(1080/2)
+screen_width = int(1920)
+screen_height = int(1080)
 hud_height = 100
 ret_pen = Pen("ffffff", thickness=Unit(4), pattern=PenPattern.SOLID)
 count = 0
