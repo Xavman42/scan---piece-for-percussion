@@ -19,10 +19,10 @@ top_layer = []
 scroll_time = 8
 num_reflections = 2
 piece_time = 0
-data_file = "Movement_14.data"
+data_file = "Movement_6.data"
 fps = 60
-piece_duration = 130
-video_name = "Movement_14.mp4"
+piece_duration = 140
+video_name = "Movement_6.mp4"
 
 neoscore.setup()
 neoscore.set_background_brush("#000000")

@@ -156,7 +156,7 @@ class CircleReticle:
             self.prev_rad = radius
             return None, drum_hit
         else:
-            return self.id
+            return self.id, None
 
     def _animate_actual(self, now):
         radius = (now - self.init_time - scroll_time) * self.velocity + 1
