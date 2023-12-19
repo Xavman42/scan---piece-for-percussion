@@ -1,4 +1,5 @@
 import io
+import random
 import time
 from typing import Optional
 
@@ -9,6 +10,7 @@ from neoscore.core import neoscore
 from neoscore.core.brush import Brush
 from neoscore.core.rect import Rect
 from neoscore.core.units import Unit
+from neoscore.core.image import Image as im
 
 from main import Drum, line, set_velo, cleanup, redraw_top_layer, sequence_reticles, circle, set_color, set_pattern, \
     radar, get_id
@@ -26,7 +28,14 @@ class HitAnimation:
         self.init_time = now
         self.objects = []
         self.drum_num = drum_num
-        self.anim_dur = 0.25
+        self.anim_dur = random.randint(1, 10)
+        self.idx = random.randint(0, len(circle_images)-1)
+        self.scale = 2/random.randint(1, 15)
+        # self.scale = 2
+        self.pos = (Unit(random.randint(0, screen_width - 512)),
+                    Unit(random.randint(hud_height, screen_height + hud_height - 512)))
+        # self.pos = (Unit(0), Unit(hud_height))
+        print(self.id, self.pos)
 
     def animate(self, now):
         trash = self._animate_actual(now)
@@ -38,15 +47,16 @@ class HitAnimation:
         self.objects = []
         if type(self.drum_num) == int:
             if scroll_time < now - self.init_time < scroll_time + self.anim_dur:
-                opacity = hex(int(interp(now-self.init_time-scroll_time, [0, self.anim_dur], [255, 0])))[2:]
-                color = "ffffff" + opacity
-                if len(color) == 7:
-                    color = color[:6] + str(0) + color[6:]
-                self.objects.append(Path.ellipse_from_center((drums[self.drum_num].x, drums[self.drum_num].y),
-                                                             None, Unit(50), Unit(50), Brush(color)))
+                opacity = interp(now-self.init_time-scroll_time, [0, self.anim_dur], [1, 0])
+                # print(opacity)
+                # color = "ffffff" + opacity
+                # if len(color) == 7:
+                #     color = color[:6] + str(0) + color[6:]
+                self.objects.append(im(self.pos, None, circle_images[self.idx],
+                                       scale=self.scale, opacity=opacity))
             elif now - self.init_time < scroll_time:
                 pass
-            else:
+            elif now > scroll_time + self.anim_dur:
                 return self.id
 
 
@@ -153,7 +163,11 @@ def animate_all(global_time):
         piece_time = global_time
     else:
         piece_time = global_time - start_time
-    print(piece_time)
+    # print(piece_time)
+    trash = []
+    for i in hits:
+        trash.append(hits[i].animate(piece_time))
+    cleanup_hits(trash)
     sequence_reticles(piece_time, my_sequence)
     trash = []
     for i in reticles:
@@ -163,10 +177,6 @@ def animate_all(global_time):
             id = get_id()
             hits[id] = HitAnimation(id, hit, piece_time)
     cleanup("reticles", trash)
-    trash = []
-    for i in hits:
-        trash.append(hits[i].animate(piece_time))
-    cleanup_hits(trash)
     trash = []
     for i in drums:
         drums[i].animate(piece_time)
@@ -204,6 +214,14 @@ if __name__ == '__main__':
     drums = make_drums()
     my_sequence = make_sequence()
     hits = {}
+    circle_images = [
+        "../Assets/color_1.png",
+        "../Assets/color_2.png",
+        "../Assets/color_3.png",
+        "../Assets/color_4.png",
+        "../Assets/color_5.png",
+        "../Assets/color_6.png"
+    ]
     open(data_file, 'w').close()  # This wipes the file
 
     if render_to_file:

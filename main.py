@@ -527,7 +527,9 @@ class Drum:
             self.pen = Pen.no_pen()
         self.objects.append(
             Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen))
-        self.objects.append(Text(self.loc, None, str(drum_num), pen=self.pen))
+        # self.objects.append(Text(self.loc, None, str(drum_num), pen=self.pen))
+        self.objects.append(
+            Path.ellipse_from_center(self.loc, None, Unit(2), Unit(2), pen=self.pen))
 
     def animate(self, now):
         radius = (now - self.init_time) * 30
@@ -536,7 +538,9 @@ class Drum:
         self.objects = []
         self.objects.append(
             Path.ellipse_from_center(self.loc, None, Unit(self.rad), Unit(self.rad), Brush.no_brush(), pen=self.pen))
-        self.objects.append(Text(self.loc, None, str(self.drum_num), pen=self.pen))
+        # self.objects.append(Text(self.loc, None, str(self.drum_num), pen=self.pen))
+        self.objects.append(
+            Path.ellipse_from_center(self.loc, None, Unit(2), Unit(2), pen=self.pen))
         if radius < self.rad:
             self.objects.append(Path.ellipse_from_center(self.loc, None, Unit(radius), Unit(radius),
                                                          brush=Brush("#11111166"), pen=self.pen))
@@ -590,29 +594,29 @@ class Scroller:
     def get_staff_pos(self):
         match self.drum_num:
             case 0:
-                return 0
+                return 12
             case 1:
-                return 2
+                return 13
             case 2:
-                return 4
+                return 14
             case 3:
-                return 1
-            case 4:
-                return 3
-            case 5:
-                return 5
-            case 6:
-                return 6
-            case 7:
                 return 8
-            case 8:
-                return 10
-            case 9:
-                return 7
-            case 10:
+            case 4:
                 return 9
+            case 5:
+                return 10
+            case 6:
+                return 4
+            case 7:
+                return 5
+            case 8:
+                return 6
+            case 9:
+                return 0
+            case 10:
+                return 1
             case 11:
-                return 11
+                return 2
 
     def animate(self, now):
         for i in self.objects:
@@ -620,10 +624,10 @@ class Scroller:
         self.objects = []
         pos = (now - self.init_time) * self.rate
         if pos < screen_width:
-            if self.drum_num == 11:
-                pen = Pen("999999", Unit(2))
-                self.objects.append(Path.straight_line((Unit(screen_width - pos - 5), Unit(70)), None,
-                                                       (Unit(20), Unit(0)), pen=pen))
+            # if self.drum_num == 11:
+            #     pen = Pen("999999", Unit(2))
+            #     self.objects.append(Path.straight_line((Unit(screen_width - pos - 5), Unit(70)), None,
+            #                                            (Unit(20), Unit(0)), pen=pen))
             self.objects.append(MusicText((Unit(screen_width - pos), Unit(5 * (self.get_staff_pos() + 1) + 10)),
                                           None, self.note_head, MusicFont("Bravura", Unit(8)), brush=self.brush))
         else:
@@ -658,8 +662,12 @@ def redraw_top_layer(top_layer_list, ulp, urp, brp, blp, width):
     top_layer_list.append(Path.rect(urp, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer_list.append(Path.rect(brp, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     top_layer_list.append(Path.rect(blp, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
-    for i in range(5):
-        top_layer_list.append(Path.straight_line((Unit(0), Unit(20 + (i * 10))), None, (Unit(width), Unit(0)),
+    # top_layer_list.append(Path.rect(ulp, None, Unit(2000), -Unit(2000), Brush.no_brush()))
+    # top_layer_list.append(Path.rect(urp, None, Unit(2000), Unit(2000), Brush.no_brush()))
+    # top_layer_list.append(Path.rect(brp, None, -Unit(2000), Unit(2000), Brush.no_brush()))
+    # top_layer_list.append(Path.rect(blp, None, -Unit(2000), -Unit(2000), Brush.no_brush()))
+    for i in range(4):
+        top_layer_list.append(Path.straight_line((Unit(0), Unit(20 + (i * 20))), None, (Unit(width), Unit(0)),
                                                  pen=Pen("888888", thickness=Unit(3), pattern=PenPattern.SOLID)))
     top_layer_list.append(Path.straight_line((Unit(50), Unit(0)), None, (Unit(0), Unit(hud_height)),
                                             pen=Pen("ffffff", thickness=Unit(4))))

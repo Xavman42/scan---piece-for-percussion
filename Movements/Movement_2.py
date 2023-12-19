@@ -28,7 +28,8 @@ class HitAnimation:
         self.anim_dur = 0.25
         self.x = Unit(random.randint(0, screen_width))  # drums[self.drum_num].x
         self.y = Unit(random.randint(hud_height, screen_height))  # drums[self.drum_num].y
-        self.rotation = random.randint(0, 359)
+        self.rotation = 0  # random.randint(0, 359)
+        self.scale = 0.15
 
     def animate(self, now):
         trash = self._animate_actual(now)
@@ -48,7 +49,8 @@ class HitAnimation:
                 #                                              None, Unit(50), Unit(50), Brush(color)))
                 opacity = interp(now - self.init_time - scroll_time, [0, self.anim_dur], [1.0, 0.0])
                 self.objects.append(im((self.x, self.y), None, "../Assets/star_sirius.png",
-                                       scale=0.15, rotation=self.rotation, opacity=opacity))
+                                       scale=self.scale, rotation=self.rotation, opacity=opacity,
+                                       transform_origin=(-Unit(389*self.scale), -Unit(389*self.scale))))
             elif now - self.init_time < scroll_time:
                 pass
             else:

@@ -99,7 +99,7 @@ def refresh_func(global_time: float) -> Optional[neoscore.RefreshFuncResult]:
 
 
 if __name__ == '__main__':
-    render_to_file = True
+    render_to_file = False
     drums = make_drums()
     my_sequence = make_sequence()
     open(data_file, 'w').close()  # This wipes the file
