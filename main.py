@@ -400,7 +400,8 @@ class LineReticle:
 
 
 class RadarReticle:
-    def __init__(self, ul, ur, bl, br, direction, id=0, pen=None, velocity=0.5, now=0):
+    def __init__(self, ul, ur, bl, br, direction, id=0, pen=None, velocity=0.5, now=0,
+                 origin=(Unit(screen_width/2), Unit(3 * screen_height / 5))):
         self.id = id
         self.init_time = now
         self.ul = ul
@@ -409,7 +410,7 @@ class RadarReticle:
         self.br = br
         self.box_width = (ur[0] - ul[0]).base_value
         self.box_height = abs((ul[1] - bl[1]).base_value)
-        self.origin = (Unit(self.box_width / 2), Unit(4 * self.box_height / 5))
+        self.origin = origin # (Unit(self.box_width / 2), Unit(4 * self.box_height / 5))
         self.length = 1000
         self.objects = []
         self.pen = pen
@@ -793,7 +794,10 @@ def mouse_handler(event):
 
 def sequence_reticles(piece_time, collection):
     if len(collection) > 0:
-        done = collection[0][1](collection[0][2], collection[0][0], piece_time, collection[0][3])
+        if len(collection[0]) == 4:
+            done = collection[0][1](collection[0][2], collection[0][0], piece_time, collection[0][3])
+        if len(collection[0]) == 5:
+            done = collection[0][1](collection[0][2], collection[0][0], piece_time, collection[0][3], collection[0][4])
         if done:
             collection.pop(0)
 
@@ -820,10 +824,12 @@ def line(direction, onset_time, piece_time, drum_dict):
         return False
 
 
-def radar(direction, onset_time, piece_time, drum_dict):
+def radar(direction, onset_time, piece_time, drum_dict, velocity=0.5,
+          origin=(Unit(screen_width/2), Unit(3 * screen_height / 5))):
     if piece_time > onset_time:
         id = get_id()
-        reticles[id] = RadarReticle(ULP, URP, BLP, BRP, direction, id, ret_pen, now=piece_time)
+        reticles[id] = RadarReticle(ULP, URP, BLP, BRP, direction, id, ret_pen, now=piece_time, velocity=velocity,
+                                    origin=origin)
         reticles[id].set_drum_locations(drum_dict)
         return True
     else:

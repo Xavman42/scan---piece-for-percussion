@@ -19,10 +19,10 @@ top_layer = []
 scroll_time = 8
 num_reflections = 2
 piece_time = 0
-data_file = "dynamic.data"
+data_file = "circus.data"
 fps = 60
-piece_duration = 62
-video_name = "dynamic.mp4"
+piece_duration = 104
+video_name = "circus.mp4"
 
 neoscore.setup()
 neoscore.set_background_brush("#000000")
