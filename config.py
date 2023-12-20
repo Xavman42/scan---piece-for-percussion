@@ -19,10 +19,10 @@ top_layer = []
 scroll_time = 8
 num_reflections = 2
 piece_time = 0
-data_file = "fish.data"
+data_file = "dynamic.data"
 fps = 60
-piece_duration = 130
-video_name = "fish.mp4"
+piece_duration = 62
+video_name = "dynamic.mp4"
 
 neoscore.setup()
 neoscore.set_background_brush("#000000")

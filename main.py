@@ -454,8 +454,9 @@ class RadarReticle:
             return None, drum_hit
         elif abs(angle) < 4 * math.pi:
             self.prev_angle = angle
+            return None, None
         else:
-            return self.id
+            return self.id, None
 
     def _animate_actual(self, now):
         match self.direction:
@@ -659,9 +660,9 @@ def redraw_top_layer(top_layer_list, ulp, urp, brp, blp, width):
         i.remove()
     top_layer_list = []
     top_layer_list.append(Path.rect(ulp, None, Unit(2000), -Unit(2000), Brush("#222222"), Pen.no_pen()))
-    top_layer_list.append(Path.rect(urp, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
-    top_layer_list.append(Path.rect(brp, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
-    top_layer_list.append(Path.rect(blp, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    # top_layer_list.append(Path.rect(urp, None, Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    # top_layer_list.append(Path.rect(brp, None, -Unit(2000), Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
+    # top_layer_list.append(Path.rect(blp, None, -Unit(2000), -Unit(2000), Brush("#eeeeee"), Pen.no_pen()))
     # top_layer_list.append(Path.rect(ulp, None, Unit(2000), -Unit(2000), Brush.no_brush()))
     # top_layer_list.append(Path.rect(urp, None, Unit(2000), Unit(2000), Brush.no_brush()))
     # top_layer_list.append(Path.rect(brp, None, -Unit(2000), Unit(2000), Brush.no_brush()))
