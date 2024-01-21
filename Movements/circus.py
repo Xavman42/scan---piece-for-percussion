@@ -84,6 +84,7 @@ def make_drums():
 
 def make_sequence():
     collection = []
+    collection.append((-10, set_pattern, "DASH", drums))
     for i in range(15):
         collection.append((2*i, radar, "ccw", drums, np.pi/4))
     for i in range(5):
